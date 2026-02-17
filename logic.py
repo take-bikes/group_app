@@ -115,6 +115,9 @@ class GroupOptimizer:
         schedule = [] 
         optimize_steps = 2000 # 1回の生成につき何回「入れ替え」を試すか
 
+        # 今回のセッション内での履歴（過去のDB履歴は含まない）
+        session_pair_history = defaultdict(int)
+
         for day in range(1, num_days + 1):
             best_groups = None
             min_cost = float('inf')
@@ -182,11 +185,30 @@ class GroupOptimizer:
                 if min_cost == 0:
                     break
 
-            # 履歴更新
+            # 履歴更新（DB保存用・次回の計算用）
             self._update_history(best_groups)
             
             # 詳細スコア計算
             details = self.get_score_details(best_groups)
+
+            # --- 今回のリクエスト対応: セッション内のみの重複数を計算 ---
+            session_dupes = 0
+            for group in best_groups:
+                names = [p['name'] for p in group]
+                for p1, p2 in itertools.combinations(names, 2):
+                    pair = self._get_pair_key(p1, p2)
+                    if session_pair_history[pair] > 0:
+                        session_dupes += 1
+            
+            # セッション履歴も更新
+            for group in best_groups:
+                names = [p['name'] for p in group]
+                for p1, p2 in itertools.combinations(names, 2):
+                    pair = self._get_pair_key(p1, p2)
+                    session_pair_history[pair] += 1
+            
+            # detailsに追加
+            details['duplicate_count'] = session_dupes
 
             # 結果出力用に整形
             display_groups = []

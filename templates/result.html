@@ -33,7 +33,7 @@
             <h3>
                 {{ day.day }}日目
                 <span style="font-size:0.6em; color:gray; font-weight: normal;">
-                    (重複: {{ day.details.history }}
+                    (今回重複: {{ day.details.duplicate_count }}組
                     {% if day.details.gender > 0 %}, 性別配慮: {{ day.details.gender }}{% endif %}
                     {% if day.details.grade > 0 %}, 学年被り: {{ day.details.grade }}{% endif %}
                     )
