@@ -41,7 +41,10 @@
                     <td>グループ {{ loop.index }}</td>
                     <td>
                         {% for person in group %}
-                        <span class="label">{{ person }}</span>
+                        {% set is_female = person.gender in ['女', 'F', 'Female', 'woman'] %}
+                        <span class="label" style="{{ 'color: #e91e63; font-weight: bold;' if is_female else '' }}">
+                            {{ person.name }}({{ person.grade }})
+                        </span>
                         {% endfor %}
                     </td>
                 </tr>

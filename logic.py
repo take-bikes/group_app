@@ -96,8 +96,11 @@ class GroupOptimizer:
             # 結果出力用に「名前だけのリスト」に変換しておく
             display_groups = []
             for g in best_groups:
-                # 画面表示用に "名前(属性)" の形にする
-                display_groups.append([f"{p['name']}({p['grade']})" for p in g])
+                # 画面表示用にオブジェクトのまま返す (修正)
+                display_groups.append([
+                    {'name': p['name'], 'grade': p['grade'], 'gender': p['gender']}
+                    for p in g
+                ])
 
             schedule.append({
                 "day": day,

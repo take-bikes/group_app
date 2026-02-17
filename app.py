@@ -127,9 +127,8 @@ def index():
 def save_groups_to_db_fixed(schedule):
     for day in schedule:
         for group in day['groups']:
-            # groupの中身が ["Aさん(1)", "Bさん(2)"] となっている場合
-            # 名前部分だけ取り出す（カッコ以前）
-            clean_names = [name.split('(')[0] for name in group]
+            # groupの中身が [{'name':..., 'grade':..., 'gender':...}, ...] となっている
+            clean_names = [p['name'] for p in group]
             
             for p1, p2 in combinations(clean_names, 2):
                 sorted_p1, sorted_p2 = sorted((p1, p2))
