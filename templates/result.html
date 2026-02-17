@@ -15,6 +15,16 @@
         .label.female {
             background-color: #e91e63;
         }
+
+        .label.tool {
+            background-color: #374151;
+            /* Dark Gray */
+            color: #fbbf24;
+            /* Amber */
+            border: 2px solid #fbbf24;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -62,8 +72,8 @@
                     <td>
                         {% for person in group %}
                         {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
-                        <span class="label {{ 'female' if is_female else '' }}">
-                            {{ person.name }}({{ person.grade }}){{ ' 🔧' if person.is_tool else '' }}
+                        <span class="label {{ 'tool' if person.is_tool else ('female' if is_female else '') }}">
+                            {{ '🔧 ' if person.is_tool else '' }}{{ person.name }}({{ person.grade }})
                         </span>
                         {% endfor %}
                     </td>
