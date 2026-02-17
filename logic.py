@@ -214,10 +214,19 @@ class GroupOptimizer:
             display_groups = []
             for g in best_groups:
                 # 学年が高い順（降順）にソート
-                # 数字の場合は数値として、それ以外は0として扱う（一番後ろになる）
+                # 数字が含まれる部分は数値として評価、それ以外は0（最後尾）にする
+                def get_grade_num(p):
+                    # 文字列に変換して前後の空白除去
+                    s = str(p['grade']).strip()
+                    # 数字のみ抽出（全角数字も対応）
+                    nums = "".join(filter(str.isdigit, s))
+                    if nums:
+                        return int(nums)
+                    return 0
+
                 g_sorted = sorted(
                     g,
-                    key=lambda p: int(p['grade']) if str(p['grade']).isdigit() else 0,
+                    key=get_grade_num,
                     reverse=True
                 )
                 display_groups.append([

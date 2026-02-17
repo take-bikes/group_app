@@ -3,67 +3,388 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>グループ分けアプリ</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Grouping Tool</title>
     <style>
+        :root {
+            --primary: #4f46e5;
+            /* Indigo */
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --male-color: #eff6ff;
+            --male-text: #2563eb;
+            --female-color: #fdf2f8;
+            --female-text: #db2777;
+        }
+
         body {
-            padding: 20px;
-            max-width: 800px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
             margin: 0 auto;
         }
 
-        textarea {
-            height: 150px;
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
+        p.subtitle {
+            color: var(--text-sub);
+        }
+
+        /* Input Area (Paste Zone) */
+        .paste-zone {
+            background: var(--card-bg);
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: text;
+            margin-bottom: 30px;
+        }
+
+        .paste-zone:hover,
+        .paste-zone:focus-within {
+            border-color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .paste-zone textarea {
+            width: 100%;
+            height: 60px;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-sub);
+        }
+
+        /* Member List (Grid) */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .member-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .member-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-color: var(--primary);
+        }
+
+        .card-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Gender Toggle */
+        .gender-toggle {
+            display: flex;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .gender-option {
+            flex: 1;
+            text-align: center;
+            padding: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gender-option.selected[data-value="M"] {
+            background-color: var(--male-color);
+            color: var(--male-text);
+            font-weight: bold;
+        }
+
+        .gender-option.selected[data-value="F"] {
+            background-color: var(--female-color);
+            color: var(--female-text);
+            font-weight: bold;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .member-card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        /* Controls */
+        .controls {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        /* Hidden textarea for form submission */
+        #hidden-participants {
+            display: none;
         }
     </style>
 </head>
 
 <body>
-    <h1>📋 グループ分けアプリ</h1>
 
-    <form method="post">
-        <div class="input-group">
-            <label><b>参加者リスト</b>（名前,学年,性別 の順で入力）:</label><br>
-            <small>※カンマ区切りで入力してください。「女」または「F」で女性判定されます。</small>
-            <textarea name="participants" required placeholder="例：
-田中,1,男
-佐藤,2,女
-鈴木,1,F
-高橋,3,M">
-田中,1,男
-佐藤,2,女
-鈴木,1,F
-高橋,3,M
-</textarea>
-            </label>
-
-            <div class="flex two">
-                <label>
-                    グループの数:
-                    <input type="number" name="num_groups" value="3" min="1">
-                </label>
-                <label>
-                    日数（回数）:
-                    <input type="number" name="num_days" value="2" min="1">
-                </label>
-            </div>
-
-            <button type="submit" class="success">グループを作成する</button>
-        </div>
-    </form>
-
-    <hr style="margin-top: 40px;">
-
-    <div class="card">
+    <div class="container">
         <header>
-            <h3>⚙️ データ管理</h3>
+            <h1>⛳ Smart Grouping</h1>
+            <p class="subtitle">Excelやスプレッドシートからコピペするだけで、完璧なグループを作成します。</p>
         </header>
-        <p>過去のペア履歴（DB）をリセットする場合のみ押してください。</p>
-        <footer class="flex two">
-            <a href="/reset" class="button error" onclick="return confirm('本当に履歴を全て削除しますか？');">🗑️ 履歴をリセットする</a>
-            <a href="/debug/history" class="button warning">📊 現在の履歴を確認する</a>
-        </footer>
+
+        <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
+            <textarea id="pasteInput" placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
+        </div>
+
+        <div id="memberGrid" class="member-grid">
+        </div>
+
+        <form method="post" id="mainForm">
+            <textarea name="participants" id="hidden-participants"></textarea>
+
+            <div class="controls">
+                <div style="display:flex; gap: 20px;">
+                    <div class="control-group">
+                        <label>グループ数</label>
+                        <input type="number" name="num_groups" value="10" min="2" style="width: 80px;">
+                    </div>
+                    <div class="control-group">
+                        <label>回数（Days）</label>
+                        <input type="number" name="num_days" value="4" min="1" style="width: 80px;">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap: 15px; align-items: center;">
+                    <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
+                    <button type="submit" class="btn-primary">グループを作成</button>
+                </div>
+            </div>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/reset" class="btn-text" style="color: #ef4444;" onclick="return confirm('履歴を削除しますか？')">履歴をリセット</a>
+        </div>
     </div>
+
+    <script>
+        const grid = document.getElementById('memberGrid');
+        const hiddenInput = document.getElementById('hidden-participants');
+        const form = document.getElementById('mainForm');
+        const pasteInput = document.getElementById('pasteInput');
+
+        // 初期データ（なければ空）
+        let members = [];
+
+        // カードを生成する関数
+        function createCard(member, index) {
+            const div = document.createElement('div');
+            div.className = 'member-card';
+            div.innerHTML = `
+            <div class="remove-btn" onclick="removeMember(${index})">×</div>
+            <input type="text" placeholder="名前" value="${member.name}" oninput="updateMember(${index}, 'name', this.value)">
+            <div class="card-row">
+                <input type="text" placeholder="学年" value="${member.grade}" style="flex:1" oninput="updateMember(${index}, 'grade', this.value)">
+                <div class="gender-toggle" style="flex:1">
+                    <div class="gender-option ${member.gender === 'M' ? 'selected' : ''}" 
+                         data-value="M" onclick="updateGender(${index}, 'M')">男</div>
+                    <div class="gender-option ${member.gender === 'F' ? 'selected' : ''}" 
+                         data-value="F" onclick="updateGender(${index}, 'F')">女</div>
+                </div>
+            </div>
+        `;
+            return div;
+        }
+
+        // 画面描画
+        function render() {
+            grid.innerHTML = '';
+            members.forEach((m, i) => {
+                grid.appendChild(createCard(m, i));
+            });
+        }
+
+        // データ更新
+        window.updateMember = (index, key, value) => {
+            members[index][key] = value;
+        };
+
+        window.updateGender = (index, gender) => {
+            members[index].gender = gender;
+            render(); // 再描画でスタイル適用
+        };
+
+        window.addMember = () => {
+            members.push({ name: '', grade: '', gender: 'M' });
+            render();
+        };
+
+        window.removeMember = (index) => {
+            members.splice(index, 1);
+            render();
+        };
+
+        // Excel/CSV貼り付け処理
+        pasteInput.addEventListener('input', (e) => {
+            const text = e.target.value;
+            if (!text.trim()) return;
+
+            // 行で分割
+            const rows = text.split(/\n/);
+
+            rows.forEach(row => {
+                if (!row.trim()) return;
+                // タブ区切り(Excel) または カンマ区切り(CSV) または スペース区切りに対応
+                let parts = row.split(/[\t,]/); // タブかカンマ
+                if (parts.length === 1) parts = row.split(/\s+/); // なければスペース
+
+                const name = parts[0]?.trim() || '';
+                const grade = parts[1]?.trim() || '?';
+                let genderRaw = parts[2]?.trim() || 'M';
+
+                // 性別判定
+                let gender = 'M';
+                if (['F', '女', 'FEMALE', 'WOMAN'].includes(genderRaw.toUpperCase())) {
+                    gender = 'F';
+                }
+
+                if (name) {
+                    members.push({ name, grade, gender });
+                }
+            });
+
+            // 入力をクリアして再描画
+            e.target.value = '';
+            render();
+        });
+
+        // 送信時にCSVテキスト形式に変換して隠しフィールドに入れる
+        form.addEventListener('submit', () => {
+            const csvLines = members.map(m => `${m.name},${m.grade},${m.gender}`);
+            hiddenInput.value = csvLines.join('\n');
+        });
+
+        // 初期表示用のダミーデータ（初回のみ）
+        if (members.length === 0) {
+            members = [
+                { name: '田中一郎', grade: '1', gender: 'M' },
+                { name: '佐藤花子', grade: '2', gender: 'F' }
+            ];
+            render();
+        }
+    </script>
+
 </body>
 
 </html>

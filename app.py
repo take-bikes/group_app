@@ -78,7 +78,10 @@ def index():
             if not line: continue
             
             # カンマまたはスペースで区切る
-            parts = line.replace(' ', ',').replace('　', ',').split(',')
+            # 空白文字を除去し、空の要素を排除
+            parts = [p.strip() for p in line.replace(' ', ',').replace('　', ',').split(',') if p.strip()]
+            
+            if not parts: continue
             
             # データが足りない場合の補完処理
             name = parts[0]
