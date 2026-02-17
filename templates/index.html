@@ -49,7 +49,21 @@
             </div>
 
             <button type="submit" class="success">グループを作成する</button>
+        </div>
     </form>
+
+    <hr style="margin-top: 40px;">
+
+    <div class="card">
+        <header>
+            <h3>⚙️ データ管理</h3>
+        </header>
+        <p>過去のペア履歴（DB）をリセットする場合のみ押してください。</p>
+        <footer class="flex two">
+            <a href="/reset" class="button error" onclick="return confirm('本当に履歴を全て削除しますか？');">🗑️ 履歴をリセットする</a>
+            <a href="/debug/history" class="button warning">📊 現在の履歴を確認する</a>
+        </footer>
+    </div>
 </body>
 
 </html>
