@@ -19,7 +19,12 @@ class GroupOptimizer:
         # 女性1人はかわいそうなので大きめのペナルティ
         self.WEIGHT_SOLE_FEMALE = 500  
         # 学年被りは、まぁ仕方ないこともあるので小さめ
-        self.WEIGHT_SAME_GRADE = 50    
+        self.WEIGHT_SAME_GRADE = 50
+        # 工具係の配分コスト
+        # 1. 人数が十分なのに0人のグループがある場合（強め）
+        self.WEIGHT_TOOL_SHORTAGE = 2000 
+        # 2. 人数が足りないのに2人以上固まった場合（絶対避ける）
+        self.WEIGHT_TOOL_OVERCROWD = 10000    
 
     def _get_pair_key(self, p1_name, p2_name):
         return tuple(sorted((p1_name, p2_name)))
@@ -30,11 +35,21 @@ class GroupOptimizer:
         """
         total_cost = 0
         
+        # 全体の工具係の数をカウント
+        all_participants = [p for g in groups for p in g]
+        total_tools = sum(1 for p in all_participants if p.get('is_tool'))
+        num_groups = len(groups)
+        
+        # 工具係がグループ数以上いるか？
+        is_tool_sufficient = (total_tools >= num_groups)
+
         for group in groups:
             # メンバー数リスト
             names = [p['name'] for p in group]
             grades = [p['grade'] for p in group]
             genders = [p['gender'] for p in group]
+            # 工具係の数
+            tool_count = sum(1 for p in group if p.get('is_tool'))
 
             # --- 1. 過去の履歴チェック（最重要） ---
             for p1_name, p2_name in itertools.combinations(names, 2):
@@ -55,6 +70,16 @@ class GroupOptimizer:
             for g1, g2 in itertools.combinations(grades, 2):
                 if g1 == g2:
                     total_cost += self.WEIGHT_SAME_GRADE
+            
+            # --- 4. 工具係の配分ルール ---
+            if is_tool_sufficient:
+                # 人数が足りているなら、各グループに1人以上必須
+                if tool_count == 0:
+                    total_cost += self.WEIGHT_TOOL_SHORTAGE
+            else:
+                # 人数が足りないなら、2人以上の重複は禁止（広く浅く配るため）
+                if tool_count >= 2:
+                    total_cost += self.WEIGHT_TOOL_OVERCROWD
 
         return total_cost
 
@@ -66,13 +91,21 @@ class GroupOptimizer:
             'history': 0,
             'gender': 0,
             'grade': 0,
+            'tool': 0,
             'total': 0
         }
+
+        # 全体の工具係の数をカウント
+        all_participants = [p for g in groups for p in g]
+        total_tools = sum(1 for p in all_participants if p.get('is_tool'))
+        num_groups = len(groups)
+        is_tool_sufficient = (total_tools >= num_groups)
 
         for group in groups:
             names = [p['name'] for p in group]
             grades = [p['grade'] for p in group]
             genders = [p['gender'] for p in group]
+            tool_count = sum(1 for p in group if p.get('is_tool'))
 
             # 1. 履歴
             for p1_name, p2_name in itertools.combinations(names, 2):
@@ -95,6 +128,18 @@ class GroupOptimizer:
                 if g1 == g2:
                     cost = self.WEIGHT_SAME_GRADE
                     details['grade'] += cost
+                    details['total'] += cost
+            
+            # 4. 工具係
+            if is_tool_sufficient:
+                if tool_count == 0:
+                    cost = self.WEIGHT_TOOL_SHORTAGE
+                    details['tool'] += cost
+                    details['total'] += cost
+            else:
+                if tool_count >= 2:
+                    cost = self.WEIGHT_TOOL_OVERCROWD
+                    details['tool'] += cost
                     details['total'] += cost
         
         return details

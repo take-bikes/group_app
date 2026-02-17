@@ -88,10 +88,16 @@ def index():
             grade = parts[1] if len(parts) > 1 else "?"
             gender = parts[2] if len(parts) > 2 else "?"
             
+            # 第4要素があれば工具係判定
+            is_tool = False
+            if len(parts) > 3:
+                is_tool = parts[3].upper() in ['TOOL', '工具', 'TRUE', 'YES', '1']
+
             participants.append({
                 'name': name,
                 'grade': grade,
-                'gender': gender
+                'gender': gender,
+                'is_tool': is_tool
             })
 
         try:

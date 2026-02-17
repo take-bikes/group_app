@@ -43,6 +43,7 @@
                     (今回重複: {{ day.details.duplicate_count }}組
                     {% if day.details.gender > 0 %}, 性別配慮: {{ day.details.gender }}{% endif %}
                     {% if day.details.grade > 0 %}, 学年被り: {{ day.details.grade }}{% endif %}
+                    {% if day.details.tool > 0 %}, 工具係配分: {{ day.details.tool }}{% endif %}
                     )
                 </span>
             </h3>
@@ -62,7 +63,7 @@
                         {% for person in group %}
                         {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
                         <span class="label {{ 'female' if is_female else '' }}">
-                            {{ person.name }}({{ person.grade }})
+                            {{ person.name }}({{ person.grade }}){{ ' 🔧' if person.is_tool else '' }}
                         </span>
                         {% endfor %}
                     </td>

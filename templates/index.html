@@ -180,6 +180,22 @@
             opacity: 1;
         }
 
+        /* Tool Toggle */
+        .tool-toggle {
+            cursor: pointer;
+            filter: grayscale(100%);
+            opacity: 0.3;
+            transition: all 0.2s;
+            font-size: 1.2rem;
+            user-select: none;
+        }
+
+        .tool-toggle.active {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
         /* Controls */
         .controls {
             background: var(--card-bg);
@@ -288,12 +304,16 @@
         let members = [];
 
         // カードを生成する関数
+        // icons: 🔧 (工具)
         function createCard(member, index) {
             const div = document.createElement('div');
             div.className = 'member-card';
             div.innerHTML = `
             <div class="remove-btn" onclick="removeMember(${index})">×</div>
-            <input type="text" placeholder="名前" value="${member.name}" oninput="updateMember(${index}, 'name', this.value)">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <input type="text" placeholder="名前" value="${member.name}" style="flex:1; margin-right:5px;" oninput="updateMember(${index}, 'name', this.value)">
+                <div class="tool-toggle ${member.is_tool ? 'active' : ''}" onclick="toggleTool(${index})" title="工具係">🔧</div>
+            </div>
             <div class="card-row">
                 <input type="text" placeholder="学年" value="${member.grade}" style="flex:1" oninput="updateMember(${index}, 'grade', this.value)">
                 <div class="gender-toggle" style="flex:1">
@@ -322,11 +342,16 @@
 
         window.updateGender = (index, gender) => {
             members[index].gender = gender;
-            render(); // 再描画でスタイル適用
+            render();
+        };
+
+        window.toggleTool = (index) => {
+            members[index].is_tool = !members[index].is_tool;
+            render();
         };
 
         window.addMember = () => {
-            members.push({ name: '', grade: '', gender: 'M' });
+            members.push({ name: '', grade: '', gender: 'M', is_tool: false });
             render();
         };
 
@@ -346,12 +371,16 @@
             rows.forEach(row => {
                 if (!row.trim()) return;
                 // タブ区切り(Excel) または カンマ区切り(CSV) または スペース区切りに対応
-                let parts = row.split(/[\t,]/); // タブかカンマ
-                if (parts.length === 1) parts = row.split(/\s+/); // なければスペース
+                let parts = row.split(/[\t,]/);
+                if (parts.length === 1) parts = row.split(/\s+/);
 
                 const name = parts[0]?.trim() || '';
                 const grade = parts[1]?.trim() || '?';
                 let genderRaw = parts[2]?.trim() || 'M';
+
+                // 第4引数があれば工具係判定 (例: "tool", "工具", "yes" など)
+                let isToolRaw = parts[3]?.trim() || '';
+                let is_tool = ['工具', 'YES', 'TOOL', 'TRUE', '1'].includes(isToolRaw.toUpperCase());
 
                 // 性別判定
                 let gender = 'M';
@@ -360,7 +389,7 @@
                 }
 
                 if (name) {
-                    members.push({ name, grade, gender });
+                    members.push({ name, grade, gender, is_tool });
                 }
             });
 
@@ -371,15 +400,16 @@
 
         // 送信時にCSVテキスト形式に変換して隠しフィールドに入れる
         form.addEventListener('submit', () => {
-            const csvLines = members.map(m => `${m.name},${m.grade},${m.gender}`);
+            // 名前,学年,性別,工具フラグ
+            const csvLines = members.map(m => `${m.name},${m.grade},${m.gender},${m.is_tool ? 'TOOL' : ''}`);
             hiddenInput.value = csvLines.join('\n');
         });
 
         // 初期表示用のダミーデータ（初回のみ）
         if (members.length === 0) {
             members = [
-                { name: '田中一郎', grade: '1', gender: 'M' },
-                { name: '佐藤花子', grade: '2', gender: 'F' }
+                { name: '田中一郎', grade: '1', gender: 'M', is_tool: true },
+                { name: '佐藤花子', grade: '2', gender: 'F', is_tool: false }
             ];
             render();
         }
