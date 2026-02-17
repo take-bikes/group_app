@@ -108,3 +108,35 @@ def reset_db():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# --- 履歴確認用の隠しページ ---
+@app.route('/debug/history')
+def debug_history():
+    # 全データを取得
+    records = PairHistory.query.all()
+    
+    # 簡易的なHTMLを作成（テンプレートファイルを作らなくて良いように）
+    html = """
+    <h1>📊 データベースの中身（デバッグ用）</h1>
+    <a href="/">TOPに戻る</a>
+    <table border="1" style="border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #f2f2f2;">
+            <th style="padding: 8px;">ID</th>
+            <th style="padding: 8px;">人1</th>
+            <th style="padding: 8px;">人2</th>
+            <th style="padding: 8px;">一緒になった回数</th>
+        </tr>
+    """
+    
+    for r in records:
+        html += f"""
+        <tr>
+            <td style="padding: 8px;">{r.id}</td>
+            <td style="padding: 8px;">{r.person1}</td>
+            <td style="padding: 8px;">{r.person2}</td>
+            <td style="padding: 8px; text-align: center;">{r.count}</td>
+        </tr>
+        """
+    
+    html += "</table>"
+    return html
