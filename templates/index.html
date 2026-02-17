@@ -21,33 +21,34 @@
 <body>
     <h1>📋 グループ分けアプリ</h1>
 
-    <form method="POST">
-        <label>
-            参加者の名前（1行に1人ずつ入力）:
-            <textarea name="participants" placeholder="Aさん&#13;&#10;Bさん&#13;&#10;Cさん...">Aさん
-Bさん
-Cさん
-Dさん
-Eさん
-Fさん
-Gさん
-Hさん
-Iさん
-Jさん</textarea>
-        </label>
-
-        <div class="flex two">
-            <label>
-                グループの数:
-                <input type="number" name="num_groups" value="3" min="1">
+    <form method="post">
+        <div class="input-group">
+            <label><b>参加者リスト</b>（名前,学年,性別 の順で入力）:</label><br>
+            <small>※カンマ区切りで入力してください。「女」または「F」で女性判定されます。</small>
+            <textarea name="participants" required placeholder="例：
+                田中,1,男
+                佐藤,2,女
+                鈴木,1,F
+                高橋,3,M">
+                田中,1,男
+                佐藤,2,女
+                鈴木,1,F
+                高橋,3,M
+            </textarea>
             </label>
-            <label>
-                日数（回数）:
-                <input type="number" name="num_days" value="2" min="1">
-            </label>
-        </div>
 
-        <button type="submit" class="success">グループを作成する</button>
+            <div class="flex two">
+                <label>
+                    グループの数:
+                    <input type="number" name="num_groups" value="3" min="1">
+                </label>
+                <label>
+                    日数（回数）:
+                    <input type="number" name="num_days" value="2" min="1">
+                </label>
+            </div>
+
+            <button type="submit" class="success">グループを作成する</button>
     </form>
 </body>
 

@@ -67,9 +67,28 @@ def index():
     message = ""
     
     if request.method == 'POST':
-        # 入力データの取得
-        participants_text = request.form.get('participants')
-        participants = [line.strip() for line in participants_text.splitlines() if line.strip()]
+        raw_text = request.form.get('participants')
+        
+        # ★ここを変更: 入力テキストを解析して辞書リストを作る
+        # 入力形式: 名前,学年,性別
+        participants = []
+        for line in raw_text.splitlines():
+            line = line.strip()
+            if not line: continue
+            
+            # カンマまたはスペースで区切る
+            parts = line.replace(' ', ',').replace('　', ',').split(',')
+            
+            # データが足りない場合の補完処理
+            name = parts[0]
+            grade = parts[1] if len(parts) > 1 else "?"
+            gender = parts[2] if len(parts) > 2 else "?"
+            
+            participants.append({
+                'name': name,
+                'grade': grade,
+                'gender': gender
+            })
 
         try:
             num_groups = int(request.form.get('num_groups'))
@@ -77,26 +96,49 @@ def index():
         except ValueError:
             return "数字を正しく入力してください", 400
 
-        # ★ここが重要：DBから過去の履歴を読み込む
         existing_history = load_history_from_db()
 
-        # オプティマイザーの準備（過去の履歴をセットする）
+        # オプティマイザーに辞書リストを渡す
         optimizer = GroupOptimizer(participants)
-        # logic.py の pair_history を DBのデータで上書き更新
+        
+        # 履歴データの復元（ここは名前キーなのでそのまま動くはずですが念の為）
         for pair, count in existing_history.items():
             optimizer.pair_history[pair] = count
 
         # 計算実行
         schedule = optimizer.make_groups(num_groups, num_days)
 
-        # ★ここが重要：今回の結果をDBに保存する
-        save_groups_to_db(schedule)
+        # DB保存処理の修正が必要（名前だけを取り出して保存）
+        # save_groups_to_db 関数は少し修正が必要ですが、
+        # logic.pyの出力(display_groups)ですでに名前リストになっているため
+        # 実はそのままでも動く可能性がありますが、以下のsave関数の修正を推奨します。
         
-        message = "今回の結果をデータベースに保存しました！次回の計算ではこのペアが考慮されます。"
+        # (簡易対応として save_groups_to_db は名前の文字列を受け取る想定なので
+        #  logic.py 側で出力時に名前リストに変換しています。ですので app.py の保存部分は変更なしでOKです)
+        
+        save_groups_to_db_fixed(schedule) # ※下で定義する修正版を使う
 
+        message = "条件を考慮してグループ分けしました！"
         return render_template('result.html', schedule=schedule, message=message)
 
     return render_template('index.html')
+
+
+def save_groups_to_db_fixed(schedule):
+    for day in schedule:
+        for group in day['groups']:
+            # groupの中身が ["Aさん(1)", "Bさん(2)"] となっている場合
+            # 名前部分だけ取り出す（カッコ以前）
+            clean_names = [name.split('(')[0] for name in group]
+            
+            for p1, p2 in combinations(clean_names, 2):
+                sorted_p1, sorted_p2 = sorted((p1, p2))
+                record = PairHistory.query.filter_by(person1=sorted_p1, person2=sorted_p2).first()
+                if record:
+                    record.count += 1
+                else:
+                    db.session.add(new_record := PairHistory(person1=sorted_p1, person2=sorted_p2, count=1))
+    db.session.commit()
 
 # --- 履歴リセット機能（おまけ） ---
 @app.route('/reset')
@@ -108,8 +150,7 @@ def reset_db():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-# --- 履歴確認用の隠しページ ---
+    
 @app.route('/debug/history')
 def debug_history():
     # 全データを取得
