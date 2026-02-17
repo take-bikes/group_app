@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>グループ分けアプリ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        textarea {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>📋 グループ分けアプリ</h1>
+
+    <form method="POST">
+        <label>
+            参加者の名前（1行に1人ずつ入力）:
+            <textarea name="participants" placeholder="Aさん&#13;&#10;Bさん&#13;&#10;Cさん...">Aさん
+Bさん
+Cさん
+Dさん
+Eさん
+Fさん
+Gさん
+Hさん
+Iさん
+Jさん</textarea>
+        </label>
+
+        <div class="flex two">
+            <label>
+                グループの数:
+                <input type="number" name="num_groups" value="3" min="1">
+            </label>
+            <label>
+                日数（回数）:
+                <input type="number" name="num_days" value="2" min="1">
+            </label>
+        </div>
+
+        <button type="submit" class="success">グループを作成する</button>
+    </form>
+</body>
+
+</html>

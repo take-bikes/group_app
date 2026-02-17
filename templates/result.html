@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>結果発表</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎉 グループ分け結果</h1>
+    {% if message %}
+    <div style="background-color: #dff0d8; color: #3c763d; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+        {{ message }}
+    </div>
+    {% endif %}
+    <a href="/" class="button">戻ってやり直す</a>
+
+    {% for day in schedule %}
+    <div class="card">
+        <header>
+            <h3>{{ day.day }}日目 <span style="font-size:0.8em; color:gray;">(重複コスト: {{ day.cost }})</span></h3>
+        </header>
+        <table class="primary">
+            <thead>
+                <tr>
+                    <th>グループ名</th>
+                    <th>メンバー</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in day.groups %}
+                <tr>
+                    <td>グループ {{ loop.index }}</td>
+                    <td>
+                        {% for person in group %}
+                        <span class="label">{{ person }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <br>
+    {% endfor %}
+</body>
+
+</html>
