@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request
+import json
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from itertools import combinations
 from logic import GroupOptimizer
@@ -108,18 +109,11 @@ def index():
         # 計算実行
         schedule = optimizer.make_groups(num_groups, num_days)
 
-        # DB保存処理の修正が必要（名前だけを取り出して保存）
-        # save_groups_to_db 関数は少し修正が必要ですが、
-        # logic.pyの出力(display_groups)ですでに名前リストになっているため
-        # 実はそのままでも動く可能性がありますが、以下のsave関数の修正を推奨します。
-        
-        # (簡易対応として save_groups_to_db は名前の文字列を受け取る想定なので
-        #  logic.py 側で出力時に名前リストに変換しています。ですので app.py の保存部分は変更なしでOKです)
-        
-        save_groups_to_db_fixed(schedule) # ※下で定義する修正版を使う
+        # 自動保存は廃止し、手動保存のためのデータを準備
+        schedule_json = json.dumps(schedule, ensure_ascii=False)
 
         message = "条件を考慮してグループ分けしました！"
-        return render_template('result.html', schedule=schedule, message=message)
+        return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json)
 
     return render_template('index.html')
 
@@ -145,6 +139,18 @@ def reset_db():
     # データを全削除する機能（開発中に便利）
     db.session.query(PairHistory).delete()
     db.session.commit()
+
+@app.route('/save_result', methods=['POST'])
+def save_result():
+    schedule_json = request.form.get('schedule_data')
+    if schedule_json:
+        try:
+            schedule = json.loads(schedule_json)
+            save_groups_to_db_fixed(schedule)
+            return "<h1>データベースに保存しました。</h1><br><a href='/'>トップに戻る</a>"
+        except Exception as e:
+            return f"保存中にエラーが発生しました: {e}", 500
+    return "データが見つかりません", 400
     return "履歴を全てリセットしました。<a href='/'>戻る</a>"
 
 if __name__ == '__main__':

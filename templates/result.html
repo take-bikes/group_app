@@ -25,7 +25,14 @@
         {{ message }}
     </div>
     {% endif %}
-    <a href="/" class="button">戻ってやり直す</a>
+    <div style="margin-bottom: 20px;">
+        <a href="/" class="button">戻ってやり直す</a>
+
+        <form action="/save_result" method="POST" style="display:inline-block; margin-left: 10px;">
+            <input type="hidden" name="schedule_data" value="{{ schedule_json }}">
+            <button type="submit" class="success">今回の内容をデータベースに記録する</button>
+        </form>
+    </div>
 
     {% for day in schedule %}
     <div class="card">
