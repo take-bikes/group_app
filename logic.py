@@ -213,9 +213,16 @@ class GroupOptimizer:
             # 結果出力用に整形
             display_groups = []
             for g in best_groups:
+                # 学年が高い順（降順）にソート
+                # 数字の場合は数値として、それ以外は0として扱う（一番後ろになる）
+                g_sorted = sorted(
+                    g,
+                    key=lambda p: int(p['grade']) if str(p['grade']).isdigit() else 0,
+                    reverse=True
+                )
                 display_groups.append([
                     {'name': p['name'], 'grade': p['grade'], 'gender': p['gender']}
-                    for p in g
+                    for p in g_sorted
                 ])
 
             schedule.append({
