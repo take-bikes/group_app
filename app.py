@@ -139,6 +139,7 @@ def reset_db():
     # データを全削除する機能（開発中に便利）
     db.session.query(PairHistory).delete()
     db.session.commit()
+    return "履歴を全てリセットしました。<a href='/'>戻る</a>"
 
 @app.route('/save_result', methods=['POST'])
 def save_result():
