@@ -11,6 +11,10 @@
             max-width: 800px;
             margin: 0 auto;
         }
+
+        .label.female {
+            background-color: #e91e63;
+        }
     </style>
 </head>
 
@@ -26,7 +30,15 @@
     {% for day in schedule %}
     <div class="card">
         <header>
-            <h3>{{ day.day }}日目 <span style="font-size:0.8em; color:gray;">(重複コスト: {{ day.cost }})</span></h3>
+            <h3>
+                {{ day.day }}日目
+                <span style="font-size:0.6em; color:gray; font-weight: normal;">
+                    (重複: {{ day.details.history }}
+                    {% if day.details.gender > 0 %}, 性別配慮: {{ day.details.gender }}{% endif %}
+                    {% if day.details.grade > 0 %}, 学年被り: {{ day.details.grade }}{% endif %}
+                    )
+                </span>
+            </h3>
         </header>
         <table class="primary">
             <thead>
@@ -41,8 +53,8 @@
                     <td>グループ {{ loop.index }}</td>
                     <td>
                         {% for person in group %}
-                        {% set is_female = person.gender in ['女', 'F', 'Female', 'woman'] %}
-                        <span class="label" style="{{ 'color: #e91e63; font-weight: bold;' if is_female else '' }}">
+                        {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
+                        <span class="label {{ 'female' if is_female else '' }}">
                             {{ person.name }}({{ person.grade }})
                         </span>
                         {% endfor %}

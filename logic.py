@@ -13,6 +13,14 @@ class GroupOptimizer:
         # 履歴辞書: キーは (名前1, 名前2)
         self.pair_history = defaultdict(int)
 
+        # --- 重み設定（ここを調整） ---
+        # 過去の重複は絶対に避けたいので超特大ペナルティ
+        self.WEIGHT_HISTORY = 10000    
+        # 女性1人はかわいそうなので大きめのペナルティ
+        self.WEIGHT_SOLE_FEMALE = 500  
+        # 学年被りは、まぁ仕方ないこともあるので小さめ
+        self.WEIGHT_SAME_GRADE = 50    
+
     def _get_pair_key(self, p1_name, p2_name):
         return tuple(sorted((p1_name, p2_name)))
 
@@ -22,14 +30,6 @@ class GroupOptimizer:
         """
         total_cost = 0
         
-        # --- 重み設定（ここを調整） ---
-        # 過去の重複は絶対に避けたいので超特大ペナルティ
-        WEIGHT_HISTORY = 10000    
-        # 女性1人はかわいそうなので大きめのペナルティ
-        WEIGHT_SOLE_FEMALE = 500  
-        # 学年被りは、まぁ仕方ないこともあるので小さめ
-        WEIGHT_SAME_GRADE = 50    
-
         for group in groups:
             # メンバー数リスト
             names = [p['name'] for p in group]
@@ -42,21 +42,62 @@ class GroupOptimizer:
                 hist_count = self.pair_history[pair_key]
                 if hist_count > 0:
                     # 2回目なら10000点、3回目なら40000点...と激増させる
-                    total_cost += (hist_count ** 2) * WEIGHT_HISTORY
+                    total_cost += (hist_count ** 2) * self.WEIGHT_HISTORY
 
             # --- 2. 女性1人ぼっちチェック ---
             # '女', 'F', 'woman' などが含まれるか
             female_count = sum(1 for g in genders if str(g).upper() in ['女', 'F', 'FEMALE', 'WOMAN'])
             if female_count == 1:
-                total_cost += WEIGHT_SOLE_FEMALE
+                total_cost += self.WEIGHT_SOLE_FEMALE
 
             # --- 3. 学年の分散チェック ---
             # 同じ学年のペアの数を数える
             for g1, g2 in itertools.combinations(grades, 2):
                 if g1 == g2:
-                    total_cost += WEIGHT_SAME_GRADE
+                    total_cost += self.WEIGHT_SAME_GRADE
 
         return total_cost
+
+    def get_score_details(self, groups):
+        """
+        詳細なスコア内訳を計算して返す
+        """
+        details = {
+            'history': 0,
+            'gender': 0,
+            'grade': 0,
+            'total': 0
+        }
+
+        for group in groups:
+            names = [p['name'] for p in group]
+            grades = [p['grade'] for p in group]
+            genders = [p['gender'] for p in group]
+
+            # 1. 履歴
+            for p1_name, p2_name in itertools.combinations(names, 2):
+                pair_key = self._get_pair_key(p1_name, p2_name)
+                hist_count = self.pair_history[pair_key]
+                if hist_count > 0:
+                    cost = (hist_count ** 2) * self.WEIGHT_HISTORY
+                    details['history'] += cost
+                    details['total'] += cost
+
+            # 2. 性別
+            female_count = sum(1 for g in genders if str(g).upper() in ['女', 'F', 'FEMALE', 'WOMAN'])
+            if female_count == 1:
+                cost = self.WEIGHT_SOLE_FEMALE
+                details['gender'] += cost
+                details['total'] += cost
+
+            # 3. 学年
+            for g1, g2 in itertools.combinations(grades, 2):
+                if g1 == g2:
+                    cost = self.WEIGHT_SAME_GRADE
+                    details['grade'] += cost
+                    details['total'] += cost
+        
+        return details
 
     def _update_history(self, groups):
         """確定したグループ分けを履歴に記録"""
@@ -144,6 +185,9 @@ class GroupOptimizer:
             # 履歴更新
             self._update_history(best_groups)
             
+            # 詳細スコア計算
+            details = self.get_score_details(best_groups)
+
             # 結果出力用に整形
             display_groups = []
             for g in best_groups:
@@ -155,7 +199,8 @@ class GroupOptimizer:
             schedule.append({
                 "day": day,
                 "groups": display_groups,
-                "cost": min_cost
+                "cost": min_cost,
+                "details": details 
             })
 
         return schedule
