@@ -5,70 +5,197 @@
     <meta charset="UTF-8">
     <title>結果発表</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body {
             padding: 20px;
-            max-width: 800px;
+            max-width: 900px;
+            /* 少し幅を広げました */
             margin: 0 auto;
+            background-color: #f9fafb;
+            /* 背景を少しグレーに */
         }
 
-        .label.female {
-            background-color: #e91e63;
+        /* カードの微調整 */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card header {
+            background-color: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 15px 20px;
+        }
+
+        .card table.primary {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* テーブルヘッダー */
+        .card table.primary thead th {
+            background-color: #f3f4f6;
+            color: #374151;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* メンバーリストのレイアウト */
+        .members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+            /* 行間と列間 */
+            align-items: center;
+        }
+
+        /* 個々の人物の行デザイン */
+        .person-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* 提案A: 工具係バッジ */
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #fffbeb;
+            /* 薄いアンバー背景 */
+            color: #b45309;
+            /* 濃いアンバー文字 */
+            border: 1px solid #fcd34d;
+            /* 枠線 */
+            padding: 2px 8px 2px 6px;
+            border-radius: 9999px;
+            /* カプセル型 */
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            line-height: 1.2;
+        }
+
+        .tool-badge i {
+            font-size: 0.7rem;
+        }
+
+        /* 名前のスタイル */
+        .person-name {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        /* 学年のスタイル */
+        .grade {
+            color: #9ca3af;
+            font-size: 0.85em;
+            font-weight: normal;
+            margin-left: 2px;
+        }
+
+        /* 女性の場合のスタイル */
+        .person-name.female-text {
+            color: #db2777;
+            /* ピンク色 */
+            font-weight: 600;
+        }
+
+        /* 女性の学年も少し色を変える */
+        .person-name.female-text .grade {
+            color: #f472b6;
+        }
+
+        /* アクションエリア */
+        .actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
     </style>
 </head>
 
 <body>
-    <h1>🎉 グループ分け結果</h1>
+    <h1 style="margin-top:0;">🎉 グループ分け結果</h1>
+
     {% if message %}
-    <div style="background-color: #dff0d8; color: #3c763d; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+    <div
+        style="background-color: #d1fae5; color: #065f46; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #a7f3d0;">
         {{ message }}
     </div>
     {% endif %}
-    <div style="margin-bottom: 20px;">
-        <a href="/" class="button">戻ってやり直す</a>
 
-        <form action="/save_result" method="POST" style="display:inline-block; margin-left: 10px;">
+    <div class="actions">
+        <a href="/" class="button" style="background-color: #6b7280; border-color: #6b7280;">
+            <i class="fas fa-arrow-left"></i> 戻る
+        </a>
+
+        <form action="/save_result" method="POST" style="margin:0;">
             <input type="hidden" name="schedule_data" value="{{ schedule_json }}">
-            <button type="submit" class="success">今回の内容をデータベースに記録する</button>
+            <button type="submit" class="success">
+                <i class="fas fa-save"></i> データベースに記録
+            </button>
         </form>
     </div>
 
     {% for day in schedule %}
     <div class="card">
         <header>
-            <h3>
+            <h3 style="margin:0; font-size: 1.2rem;">
                 {{ day.day }}日目
-                <span style="font-size:0.6em; color:gray; font-weight: normal;">
-                    (今回重複: {{ day.details.duplicate_count }}組)
+                <span style="font-size:0.75em; color:#6b7280; font-weight: normal; margin-left: 10px;">
+                    <i class="fas fa-info-circle"></i> 今回の重複: <b>{{ day.details.duplicate_count }}</b> 組
+                    {% if day.details.tool > 0 %} / <span style="color:#d97706;">⚠ 工具配置コストあり</span>{% endif %}
                 </span>
             </h3>
         </header>
         <table class="primary">
             <thead>
                 <tr>
-                    <th>グループ名</th>
+                    <th style="width: 15%;">グループ</th>
                     <th>メンバー</th>
                 </tr>
             </thead>
             <tbody>
                 {% for group in day.groups %}
                 <tr>
-                    <td>グループ {{ loop.index }}</td>
+                    <td style="vertical-align: middle; font-weight: bold; color: #4b5563;">
+                        GROUP {{ loop.index }}
+                    </td>
                     <td>
-                        {% for person in group %}
-                        {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
-                        <span class="label {{ 'female' if is_female else '' }}">
-                            {{ '🔧 ' if person.is_tool else '' }}{{ person.name }}({{ person.grade }})
-                        </span>
-                        {% endfor %}
+                        <div class="members-list">
+                            {% for person in group %}
+                            {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
+
+                            <div class="person-item">
+                                {% if person.is_tool %}
+                                <span class="tool-badge">
+                                    <i class="fas fa-wrench"></i> 工具係
+                                </span>
+                                {% endif %}
+
+                                <span class="person-name {{ 'female-text' if is_female else '' }}">
+                                    {{ person.name }}<span class="grade">({{ person.grade }})</span>
+                                </span>
+                            </div>
+
+                            {% endfor %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <br>
     {% endfor %}
 </body>
 
