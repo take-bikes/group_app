@@ -166,6 +166,27 @@ def save_result():
 if __name__ == '__main__':
     app.run(debug=True)
     
+@app.route('/api/history')
+def api_history():
+    """履歴データをJSON形式で返すAPI"""
+    records = PairHistory.query.order_by(PairHistory.count.desc()).all()
+    pairs = []
+    for r in records:
+        pairs.append({
+            'person1': r.person1,
+            'person2': r.person2,
+            'count': r.count
+        })
+    
+    total_pairs = len(pairs)
+    total_count = sum(r.count for r in records)
+    
+    return {
+        'pairs': pairs,
+        'total_pairs': total_pairs,
+        'total_count': total_count
+    }
+
 @app.route('/debug/history')
 def debug_history():
     # 全データを取得

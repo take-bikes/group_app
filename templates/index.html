@@ -249,6 +249,202 @@
         #hidden-participants {
             display: none;
         }
+
+        /* 履歴ボタン */
+        .btn-history {
+            background-color: #0ea5e9;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-history:hover {
+            background-color: #0284c7;
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #111827;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* 統計カード */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        /* 履歴テーブル */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            background-color: #f3f4f6;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #374151;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+        }
+
+        .history-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.9rem;
+        }
+
+        .history-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .count-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-sub);
+        }
+
+        .history-empty .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* 検索ボックス */
+        .search-box {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary);
+        }
     </style>
 </head>
 
@@ -289,8 +485,28 @@
             </div>
         </form>
 
-        <div style="text-align: center; margin-top: 20px;">
+        <div
+            style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 16px; align-items: center;">
+            <button type="button" class="btn-history" onclick="openHistory()">
+                📊 ペア履歴を確認
+            </button>
             <a href="/reset" class="btn-text" style="color: #ef4444;" onclick="return confirm('履歴を削除しますか？')">履歴をリセット</a>
+        </div>
+    </div>
+
+    <!-- 履歴モーダル -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📊 ペア履歴</h2>
+                <button class="modal-close" onclick="closeHistory()">×</button>
+            </div>
+            <div class="modal-body" id="historyBody">
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -412,6 +628,140 @@
                 { name: '佐藤花子', grade: '2', gender: 'F', is_tool: false }
             ];
             render();
+        }
+
+        // ===== 履歴モーダル機能 =====
+        const historyModal = document.getElementById('historyModal');
+        const historyBody = document.getElementById('historyBody');
+        let historyData = null; // キャッシュ
+
+        function openHistory() {
+            historyModal.classList.add('active');
+            loadHistory();
+        }
+
+        function closeHistory() {
+            historyModal.classList.remove('active');
+        }
+
+        // モーダル外クリックで閉じる
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) closeHistory();
+        });
+
+        // Escキーで閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeHistory();
+        });
+
+        async function loadHistory() {
+            historyBody.innerHTML = `
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
+                </div>`;
+
+            try {
+                const res = await fetch('/api/history');
+                historyData = await res.json();
+                renderHistory(historyData);
+            } catch (err) {
+                historyBody.innerHTML = `
+                    <div class="history-empty">
+                        <div class="empty-icon">❌</div>
+                        <p>データの読み込みに失敗しました</p>
+                    </div>`;
+            }
+        }
+
+        function getCountColor(count, maxCount) {
+            // 回数に応じたグラデーション色を返す
+            if (maxCount <= 0) return { bg: '#f3f4f6', text: '#374151' };
+            const ratio = count / maxCount;
+            if (ratio >= 0.8) return { bg: '#fce4ec', text: '#c62828' };
+            if (ratio >= 0.5) return { bg: '#fff3e0', text: '#e65100' };
+            if (ratio >= 0.3) return { bg: '#fff8e1', text: '#f57f17' };
+            return { bg: '#e8f5e9', text: '#2e7d32' };
+        }
+
+        function renderHistory(data, filter = '') {
+            if (!data.pairs || data.pairs.length === 0) {
+                historyBody.innerHTML = `
+                    <div class="history-empty">
+                        <div class="empty-icon">📭</div>
+                        <p>まだ履歴がありません。<br>グループ分け結果を保存すると、ここに表示されます。</p>
+                    </div>`;
+                return;
+            }
+
+            const maxCount = Math.max(...data.pairs.map(p => p.count));
+
+            // フィルタリング
+            let filtered = data.pairs;
+            if (filter) {
+                const q = filter.toLowerCase();
+                filtered = data.pairs.filter(p =>
+                    p.person1.toLowerCase().includes(q) || p.person2.toLowerCase().includes(q)
+                );
+            }
+
+            let html = `
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.total_pairs}</div>
+                        <div class="stat-label">総ペア数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.total_count}</div>
+                        <div class="stat-label">のべ合計回数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${maxCount}</div>
+                        <div class="stat-label">最多重複回数</div>
+                    </div>
+                </div>
+                <input type="text" class="search-box" placeholder="🔍 名前で検索..."
+                       oninput="renderHistory(historyData, this.value)" value="${filter}">
+            `;
+
+            if (filtered.length === 0) {
+                html += `
+                    <div class="history-empty">
+                        <div class="empty-icon">🔍</div>
+                        <p>「${filter}」に一致するペアが見つかりません</p>
+                    </div>`;
+            } else {
+                html += `
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>人物1</th>
+                                <th>人物2</th>
+                                <th style="text-align:center;">回数</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                filtered.forEach((pair, i) => {
+                    const color = getCountColor(pair.count, maxCount);
+                    html += `
+                        <tr>
+                            <td style="color:#9ca3af;">${i + 1}</td>
+                            <td>${pair.person1}</td>
+                            <td>${pair.person2}</td>
+                            <td style="text-align:center;">
+                                <span class="count-badge" style="background:${color.bg}; color:${color.text};">
+                                    ${pair.count}
+                                </span>
+                            </td>
+                        </tr>`;
+                });
+
+                html += `</tbody></table>`;
+            }
+
+            historyBody.innerHTML = html;
         }
     </script>
 
