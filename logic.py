@@ -275,7 +275,7 @@ class GroupOptimizer:
                     reverse=True
                 )
                 display_groups.append([
-                    {'name': p['name'], 'grade': p['grade'], 'gender': p['gender']}
+                    {'name': p['name'], 'grade': p['grade'], 'gender': p['gender'],'is_tool': p.get('is_tool', False)}
                     for p in g_sorted
                 ])
 
