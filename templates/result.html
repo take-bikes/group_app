@@ -11,13 +11,11 @@
         body {
             padding: 20px;
             max-width: 900px;
-            /* 少し幅を広げました */
             margin: 0 auto;
             background-color: #f9fafb;
-            /* 背景を少しグレーに */
         }
 
-        /* カードの微調整 */
+        /* カードデザイン */
         .card {
             background: white;
             border-radius: 8px;
@@ -38,7 +36,6 @@
             margin: 0;
         }
 
-        /* テーブルヘッダー */
         .card table.primary thead th {
             background-color: #f3f4f6;
             color: #374151;
@@ -50,20 +47,50 @@
         .members-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px 20px;
-            /* 行間と列間 */
+            gap: 12px;
+            /* アイテム間の隙間 */
             align-items: center;
         }
 
-        /* 個々の人物の行デザイン */
-        .person-item {
+        /* 個々の人物ブロック */
+        .person-wrapper {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.95rem;
+            gap: 4px;
+            /* バッジと名前の間隔 */
         }
 
-        /* 提案A: 工具係バッジ */
+        /* 名前ボックス（Picnicのlabelをカスタマイズ） */
+        .label {
+            font-size: 0.95em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: white;
+            display: inline-block;
+            margin: 0;
+            /* Picnicのデフォルトマージンを消す */
+        }
+
+        /* 男性（デフォルト）のデザイン：青 */
+        .label.male {
+            background-color: #2563eb;
+            /* 鮮やかな青 */
+        }
+
+        /* 女性のデザイン：ピンク */
+        .label.female {
+            background-color: #e91e63;
+            /* ピンク */
+        }
+
+        /* 学年の文字サイズを少し小さく */
+        .grade-text {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-left: 2px;
+        }
+
+        /* 工具係バッジ */
         .tool-badge {
             display: inline-flex;
             align-items: center;
@@ -74,47 +101,22 @@
             /* 濃いアンバー文字 */
             border: 1px solid #fcd34d;
             /* 枠線 */
-            padding: 2px 8px 2px 6px;
-            border-radius: 9999px;
-            /* カプセル型 */
+            padding: 2px 6px;
+            border-radius: 4px;
+            /* 名前ボックスに合わせて少し角ばらせる */
             font-size: 0.75rem;
             font-weight: 700;
             white-space: nowrap;
+            line-height: 1.5;
+            /* 高さを名前ボックスに合わせるため調整 */
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            line-height: 1.2;
         }
 
         .tool-badge i {
             font-size: 0.7rem;
         }
 
-        /* 名前のスタイル */
-        .person-name {
-            color: #1f2937;
-            font-weight: 500;
-        }
-
-        /* 学年のスタイル */
-        .grade {
-            color: #9ca3af;
-            font-size: 0.85em;
-            font-weight: normal;
-            margin-left: 2px;
-        }
-
-        /* 女性の場合のスタイル */
-        .person-name.female-text {
-            color: #db2777;
-            /* ピンク色 */
-            font-weight: 600;
-        }
-
-        /* 女性の学年も少し色を変える */
-        .person-name.female-text .grade {
-            color: #f472b6;
-        }
-
-        /* アクションエリア */
+        /* アクションボタンエリア */
         .actions {
             margin-bottom: 20px;
             display: flex;
@@ -176,15 +178,15 @@
                             {% for person in group %}
                             {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
 
-                            <div class="person-item">
+                            <div class="person-wrapper">
                                 {% if person.is_tool %}
                                 <span class="tool-badge">
                                     <i class="fas fa-wrench"></i> 工具係
                                 </span>
                                 {% endif %}
 
-                                <span class="person-name {{ 'female-text' if is_female else '' }}">
-                                    {{ person.name }}<span class="grade">({{ person.grade }})</span>
+                                <span class="label {{ 'female' if is_female else 'male' }}">
+                                    {{ person.name }}<span class="grade-text">({{ person.grade }})</span>
                                 </span>
                             </div>
 
