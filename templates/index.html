@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Grouping Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -250,6 +251,292 @@
             display: none;
         }
 
+        /* ====== メソッド選択 ====== */
+        .method-section {
+            display: none;
+            margin-top: 20px;
+            padding: 24px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .method-section.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .method-section h3 {
+            margin: 0 0 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .method-cards {
+            display: flex;
+            gap: 16px;
+        }
+
+        .method-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .method-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+        }
+
+        .method-card.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .method-card .method-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .method-card .method-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .method-card .method-desc {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        /* ====== ハイブリッド編集エリア ====== */
+        .hybrid-editor {
+            display: none;
+            margin-top: 20px;
+            padding: 24px;
+            background: #fffbeb;
+            border-radius: 12px;
+            border: 1px solid #fcd34d;
+        }
+
+        .hybrid-editor.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .hybrid-editor h3 {
+            margin: 0 0 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #92400e;
+        }
+
+        .hybrid-editor p {
+            margin: 0 0 16px;
+            font-size: 0.85rem;
+            color: #b45309;
+        }
+
+        .hybrid-day-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hybrid-day-tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: var(--text-sub);
+        }
+
+        .hybrid-day-tab:hover {
+            border-color: #f59e0b;
+        }
+
+        .hybrid-day-tab.active {
+            border-color: #f59e0b;
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .hybrid-day-tab.done {
+            border-color: #22c55e;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .hybrid-groups-area {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            overflow: hidden;
+        }
+
+        .hybrid-group-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 12px;
+        }
+
+        .hybrid-group-row:last-child {
+            border-bottom: none;
+        }
+
+        .hybrid-group-label {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #6b7280;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .hybrid-drop-zone {
+            flex: 1;
+            min-height: 44px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            padding: 6px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .hybrid-drop-zone:empty::before {
+            content: 'メンバーをここにドラッグ';
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
+        .hybrid-member {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: grab;
+            user-select: none;
+            color: white;
+        }
+
+        .hybrid-member.male {
+            background: #2563eb;
+        }
+
+        .hybrid-member.female {
+            background: #e91e63;
+        }
+
+        .hybrid-member .grade-text {
+            font-size: 0.78rem;
+            opacity: 0.85;
+        }
+
+        /* 未配置メンバープール */
+        .unassigned-pool {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .unassigned-pool h4 {
+            margin: 0 0 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .unassigned-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 30px;
+        }
+
+        .hybrid-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            align-items: center;
+        }
+
+        .btn-confirm-day {
+            background: #f59e0b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-confirm-day:hover {
+            background: #d97706;
+        }
+
+        .btn-confirm-day:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .btn-submit-hybrid {
+            background: var(--primary);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit-hybrid:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-submit-hybrid:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
         /* 履歴ボタン */
         .btn-history {
             background-color: #0ea5e9;
@@ -465,25 +752,71 @@
 
         <form method="post" id="mainForm">
             <textarea name="participants" id="hidden-participants"></textarea>
+            <input type="hidden" name="mode" id="hidden-mode" value="auto">
+            <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
 
             <div class="controls">
                 <div style="display:flex; gap: 20px;">
                     <div class="control-group">
                         <label>グループ数</label>
-                        <input type="number" name="num_groups" value="10" min="2" style="width: 80px;">
+                        <input type="number" name="num_groups" id="numGroupsInput" value="10" min="2"
+                            style="width: 80px;">
                     </div>
                     <div class="control-group">
                         <label>回数（Days）</label>
-                        <input type="number" name="num_days" value="4" min="1" style="width: 80px;">
+                        <input type="number" name="num_days" id="numDaysInput" value="4" min="1" style="width: 80px;">
                     </div>
                 </div>
 
                 <div style="display:flex; gap: 15px; align-items: center;">
                     <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
-                    <button type="submit" class="btn-primary">グループを作成</button>
+                    <button type="button" class="btn-primary" onclick="showMethodSelection()">次へ: メソッド選択</button>
                 </div>
             </div>
         </form>
+
+        <!-- メソッド選択エリア -->
+        <div class="method-section" id="methodSection">
+            <h3>⚙️ グループ分けメソッドを選択</h3>
+            <div class="method-cards">
+                <div class="method-card selected" id="methodAuto" onclick="selectMethod('auto')">
+                    <div class="method-icon">🤖</div>
+                    <div class="method-title">全自動</div>
+                    <div class="method-desc">全ての日程を最適化アルゴリズムで自動的に決定します。</div>
+                </div>
+                <div class="method-card" id="methodHybrid" onclick="selectMethod('hybrid')">
+                    <div class="method-icon">🔧</div>
+                    <div class="method-title">ハイブリッド</div>
+                    <div class="method-desc">特定の日程を手動で決め、残りは自動で最適化します。</div>
+                </div>
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <button type="button" class="btn-primary" id="methodNextBtn" onclick="confirmMethod()">実行</button>
+            </div>
+        </div>
+
+        <!-- ハイブリッド編集エリア -->
+        <div class="hybrid-editor" id="hybridEditor">
+            <h3>🔧 ハイブリッドモード: 手動グループ編集</h3>
+            <p>手動で決めたい日程のタブを選び、メンバーをドラッグしてグループに配置してください。確定した日程は緑色になります。</p>
+
+            <div class="hybrid-day-tabs" id="hybridDayTabs"></div>
+
+            <div class="hybrid-groups-area" id="hybridGroupsArea"></div>
+
+            <div class="unassigned-pool">
+                <h4>📦 未配置メンバー</h4>
+                <div class="unassigned-list" id="unassignedList"></div>
+            </div>
+
+            <div class="hybrid-actions">
+                <button type="button" class="btn-confirm-day" id="confirmDayBtn" onclick="confirmCurrentDay()">✅
+                    この日を確定</button>
+                <button type="button" class="btn-submit-hybrid" id="submitHybridBtn" onclick="submitHybrid()"
+                    disabled>🚀 残りを自動最適化して実行</button>
+                <span id="hybridStatus" style="font-size: 0.85rem; color: #6b7280;"></span>
+            </div>
+        </div>
 
         <div
             style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 16px; align-items: center;">
@@ -762,6 +1095,241 @@
             }
 
             historyBody.innerHTML = html;
+        }
+
+        // ======================================================
+        // メソッド選択 & ハイブリッドモード
+        // ======================================================
+        let selectedMethod = 'auto';
+        let hybridCurrentDay = 1;
+        let confirmedDays = {};  // { dayNum: { groups: [[...], ...] } }
+
+        function showMethodSelection() {
+            // メンバーがいない場合は警告
+            updateHiddenField();
+            if (members.length === 0) {
+                alert('参加者を先に追加してください。');
+                return;
+            }
+            document.getElementById('methodSection').classList.add('visible');
+            document.getElementById('methodSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            document.getElementById('methodAuto').classList.toggle('selected', method === 'auto');
+            document.getElementById('methodHybrid').classList.toggle('selected', method === 'hybrid');
+            // 全自動の場合はボタンテキストを変更
+            document.getElementById('methodNextBtn').textContent = method === 'auto' ? '実行' : '手動編集へ';
+        }
+
+        function confirmMethod() {
+            if (selectedMethod === 'auto') {
+                // 全自動: そのままフォーム送信
+                document.getElementById('hidden-mode').value = 'auto';
+                updateHiddenField();
+                form.submit();
+            } else {
+                // ハイブリッド: 手動編集UIを表示
+                confirmedDays = {};
+                initHybridEditor();
+            }
+        }
+
+        function initHybridEditor() {
+            const numDays = parseInt(document.getElementById('numDaysInput').value);
+            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+
+            document.getElementById('hybridEditor').classList.add('visible');
+
+            // 日程タブを生成
+            const tabsContainer = document.getElementById('hybridDayTabs');
+            tabsContainer.innerHTML = '';
+            for (let d = 1; d <= numDays; d++) {
+                const tab = document.createElement('div');
+                tab.className = 'hybrid-day-tab' + (d === 1 ? ' active' : '');
+                tab.textContent = d + '日目';
+                tab.dataset.day = d;
+                tab.onclick = () => switchHybridDay(d);
+                tabsContainer.appendChild(tab);
+            }
+
+            hybridCurrentDay = 1;
+            buildHybridGroups(numGroups);
+            updateHybridStatus();
+
+            document.getElementById('hybridEditor').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function switchHybridDay(dayNum) {
+            // 現在の日が確定済みなら編集不可
+            if (confirmedDays[dayNum]) {
+                alert(dayNum + '日目は既に確定済みです。');
+                return;
+            }
+
+            hybridCurrentDay = dayNum;
+            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+
+            // タブのactive状態を更新
+            document.querySelectorAll('.hybrid-day-tab').forEach(t => {
+                t.classList.toggle('active', parseInt(t.dataset.day) === dayNum);
+            });
+
+            buildHybridGroups(numGroups);
+        }
+
+        function buildHybridGroups(numGroups) {
+            const area = document.getElementById('hybridGroupsArea');
+            area.innerHTML = '';
+
+            for (let g = 0; g < numGroups; g++) {
+                const row = document.createElement('div');
+                row.className = 'hybrid-group-row';
+
+                const label = document.createElement('div');
+                label.className = 'hybrid-group-label';
+                label.textContent = 'GROUP ' + (g + 1);
+
+                const dropZone = document.createElement('div');
+                dropZone.className = 'hybrid-drop-zone';
+                dropZone.dataset.group = g;
+
+                row.appendChild(label);
+                row.appendChild(dropZone);
+                area.appendChild(row);
+
+                // SortableJSでドロップゾーンを作成
+                new Sortable(dropZone, {
+                    group: 'hybrid-members',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost'
+                });
+            }
+
+            // 未配置プールに全メンバーを配置
+            const pool = document.getElementById('unassignedList');
+            pool.innerHTML = '';
+
+            members.forEach(m => {
+                const el = createHybridMemberEl(m);
+                pool.appendChild(el);
+            });
+
+            new Sortable(pool, {
+                group: 'hybrid-members',
+                animation: 150,
+                ghostClass: 'sortable-ghost'
+            });
+
+            // 確定ボタンの状態更新
+            document.getElementById('confirmDayBtn').disabled = false;
+        }
+
+        function createHybridMemberEl(member) {
+            const el = document.createElement('div');
+            const isFemale = ['\u5973', 'F', 'FEMALE', 'WOMAN'].includes(String(member.gender).toUpperCase());
+            el.className = 'hybrid-member ' + (isFemale ? 'female' : 'male');
+            el.dataset.name = member.name;
+            el.dataset.grade = member.grade;
+            el.dataset.gender = member.gender;
+            el.dataset.tool = member.isTool ? 'true' : 'false';
+
+            let html = '';
+            if (member.isTool) html += '\ud83d\udd27 ';
+            html += member.name;
+            html += '<span class="grade-text">(' + member.grade + ')</span>';
+            el.innerHTML = html;
+            return el;
+        }
+
+        function confirmCurrentDay() {
+            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+            const dropZones = document.querySelectorAll('.hybrid-drop-zone');
+            const pool = document.getElementById('unassignedList');
+
+            // 未配置メンバーがいる場合は警告
+            if (pool.children.length > 0) {
+                alert('全てのメンバーをグループに配置してください。\n未配置: ' + pool.children.length + '名');
+                return;
+            }
+
+            // グループデータを収集
+            const groups = [];
+            dropZones.forEach(zone => {
+                const groupMembers = [];
+                Array.from(zone.children).forEach(el => {
+                    groupMembers.push({
+                        name: el.dataset.name,
+                        grade: el.dataset.grade,
+                        gender: el.dataset.gender,
+                        is_tool: el.dataset.tool === 'true'
+                    });
+                });
+                groups.push(groupMembers);
+            });
+
+            // 確定データを保存
+            confirmedDays[hybridCurrentDay] = { day: hybridCurrentDay, groups: groups };
+
+            // タブを緑色に
+            document.querySelectorAll('.hybrid-day-tab').forEach(t => {
+                if (parseInt(t.dataset.day) === hybridCurrentDay) {
+                    t.classList.remove('active');
+                    t.classList.add('done');
+                    t.textContent = hybridCurrentDay + '日目 ✅';
+                }
+            });
+
+            updateHybridStatus();
+
+            // 次の未確定日を探す
+            const numDays = parseInt(document.getElementById('numDaysInput').value);
+            let nextDay = null;
+            for (let d = 1; d <= numDays; d++) {
+                if (!confirmedDays[d]) {
+                    nextDay = d;
+                    break;
+                }
+            }
+
+            if (nextDay) {
+                switchHybridDay(nextDay);
+            } else {
+                // 全日程確定済み
+                document.getElementById('confirmDayBtn').disabled = true;
+                document.getElementById('hybridGroupsArea').innerHTML = '<div style="padding: 20px; text-align: center; color: #22c55e; font-weight: 600;">✅ 全ての日程が確定されました</div>';
+            }
+        }
+
+        function updateHybridStatus() {
+            const numDays = parseInt(document.getElementById('numDaysInput').value);
+            const confirmedCount = Object.keys(confirmedDays).length;
+            const remaining = numDays - confirmedCount;
+
+            const statusEl = document.getElementById('hybridStatus');
+            statusEl.textContent = `確定: ${confirmedCount}日 / 全${numDays}日（残り${remaining}日は自動最適化）`;
+
+            // 1日以上確定してかつ全部ではない場合に実行ボタンを有効化
+            const submitBtn = document.getElementById('submitHybridBtn');
+            submitBtn.disabled = confirmedCount === 0;
+
+            if (confirmedCount === numDays) {
+                submitBtn.textContent = '🚀 全日程確定済みで実行';
+            } else {
+                submitBtn.textContent = `\ud83d\ude80 残り${remaining}日を自動最適化して実行`;
+            }
+        }
+
+        function submitHybrid() {
+            // フォームにデータをセット
+            document.getElementById('hidden-mode').value = 'hybrid';
+            updateHiddenField();
+
+            const manualDays = Object.values(confirmedDays);
+            document.getElementById('hidden-manual-days').value = JSON.stringify(manualDays);
+
+            form.submit();
         }
     </script>
 

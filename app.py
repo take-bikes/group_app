@@ -111,21 +111,40 @@ def index():
         # オプティマイザーに辞書リストを渡す
         optimizer = GroupOptimizer(participants)
         
-        # 履歴データの復元（ここは名前キーなのでそのまま動くはずですが念の為）
+        # 履歴データの復元
         for pair, count in existing_history.items():
             optimizer.pair_history[pair] = count
 
-        # 計算実行
-        schedule = optimizer.make_groups(num_groups, num_days)
+        # モード判定
+        mode = request.form.get('mode', 'auto')
+        
+        if mode == 'hybrid':
+            # ハイブリッドモード: 手動日程を受け取り、残りを自動最適化
+            manual_days_json = request.form.get('manual_days', '[]')
+            manual_days = json.loads(manual_days_json)
+            
+            # fixed_days 形式に変換
+            fixed_days = []
+            for md in manual_days:
+                fixed_days.append({
+                    'day': md['day'],
+                    'groups': md['groups']
+                })
+            
+            schedule = optimizer.make_groups(num_groups, num_days, fixed_days=fixed_days)
+            message = f"ハイブリッドモード: 手動{len(fixed_days)}日 + 自動{num_days - len(fixed_days)}日でグループ分けしました！"
+        else:
+            # 全自動モード（従来通り）
+            schedule = optimizer.make_groups(num_groups, num_days)
+            message = "条件を考慮してグループ分けしました！メンバーをドラッグ＆ドロップで手動調整できます。"
 
-        # 自動保存は廃止し、手動保存のためのデータを準備
+        # 手動保存のためのデータを準備
         schedule_json = json.dumps(schedule, ensure_ascii=False)
 
-        # ★追加: DBの履歴データをJavaScriptで扱いやすい形式( 文字列::文字列 )に変換
+        # DBの履歴データをJavaScriptで扱いやすい形式に変換
         js_history = {f"{k[0]}::{k[1]}": v for k, v in existing_history.items()}
         db_history_json = json.dumps(js_history, ensure_ascii=False)
 
-        message = "条件を考慮してグループ分けしました！メンバーをドラッグ＆ドロップで手動調整できます。"
         return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json, db_history_json=db_history_json)
 
     return render_template('index.html')

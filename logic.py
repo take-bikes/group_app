@@ -152,10 +152,13 @@ class GroupOptimizer:
                 pair = self._get_pair_key(p1, p2)
                 self.pair_history[pair] += 1
 
-    def make_groups(self, num_groups, num_days, attempts=10):
+    def make_groups(self, num_groups, num_days, attempts=10, fixed_days=None):
         """
         attempts: ここでは「ランダム初期化の回数」
         optimize_steps: その後の「交換改善」の回数
+        fixed_days: 手動で確定した日程のリスト（ハイブリッドモード用）
+                    例: [{'day': 1, 'groups': [[{name, grade, gender, is_tool}, ...], ...]}]
+                    None の場合は全自動モード
         """
         schedule = [] 
         optimize_steps = 2000 # 1回の生成につき何回「入れ替え」を試すか
@@ -163,7 +166,54 @@ class GroupOptimizer:
         # 今回のセッション内での履歴（過去のDB履歴は含まない）
         session_pair_history = defaultdict(int)
 
+        # --- ハイブリッドモード: 手動日程を先に処理 ---
+        fixed_day_numbers = set()
+        if fixed_days:
+            for fd in fixed_days:
+                fixed_day_numbers.add(fd['day'])
+                groups = fd['groups']
+
+                # 履歴更新（自動最適化のために反映）
+                self._update_history(groups)
+
+                # セッション履歴にも反映
+                for group in groups:
+                    names = [p['name'] for p in group]
+                    for p1, p2 in itertools.combinations(names, 2):
+                        pair = self._get_pair_key(p1, p2)
+                        session_pair_history[pair] += 1
+
+                # 詳細スコア計算
+                details = self.get_score_details(groups)
+
+                # 重複数計算（手動日程間の重複）
+                session_dupes = 0
+                for group in groups:
+                    names = [p['name'] for p in group]
+                    for p1, p2 in itertools.combinations(names, 2):
+                        pair = self._get_pair_key(p1, p2)
+                        # この日のペアを除いた過去分のみチェック
+                        past_count = session_pair_history[pair] - 1
+                        if past_count > 0:
+                            session_dupes += 1
+                details['duplicate_count'] = session_dupes
+
+                # 表示用に整形（学年降順ソート）
+                display_groups = self._format_groups(groups)
+
+                schedule.append({
+                    "day": fd['day'],
+                    "groups": display_groups,
+                    "cost": 0,
+                    "details": details,
+                    "is_manual": True
+                })
+
         for day in range(1, num_days + 1):
+            # ハイブリッドモード: 手動確定した日はスキップ
+            if day in fixed_day_numbers:
+                continue
+
             best_groups = None
             min_cost = float('inf')
 
@@ -256,28 +306,7 @@ class GroupOptimizer:
             details['duplicate_count'] = session_dupes
 
             # 結果出力用に整形
-            display_groups = []
-            for g in best_groups:
-                # 学年が高い順（降順）にソート
-                # 数字が含まれる部分は数値として評価、それ以外は0（最後尾）にする
-                def get_grade_num(p):
-                    # 文字列に変換して前後の空白除去
-                    s = str(p['grade']).strip()
-                    # 数字のみ抽出（全角数字も対応）
-                    nums = "".join(filter(str.isdigit, s))
-                    if nums:
-                        return int(nums)
-                    return 0
-
-                g_sorted = sorted(
-                    g,
-                    key=get_grade_num,
-                    reverse=True
-                )
-                display_groups.append([
-                    {'name': p['name'], 'grade': p['grade'], 'gender': p['gender'],'is_tool': p.get('is_tool', False)}
-                    for p in g_sorted
-                ])
+            display_groups = self._format_groups(best_groups)
 
             schedule.append({
                 "day": day,
@@ -286,4 +315,24 @@ class GroupOptimizer:
                 "details": details 
             })
 
+        # 日付順にソートして返す
+        schedule.sort(key=lambda x: x['day'])
         return schedule
+
+    def _format_groups(self, groups):
+        """グループを学年降順でソートして表示用に整形する"""
+        display_groups = []
+        for g in groups:
+            def get_grade_num(p):
+                s = str(p['grade']).strip()
+                nums = "".join(filter(str.isdigit, s))
+                if nums:
+                    return int(nums)
+                return 0
+
+            g_sorted = sorted(g, key=get_grade_num, reverse=True)
+            display_groups.append([
+                {'name': p['name'], 'grade': p['grade'], 'gender': p['gender'], 'is_tool': p.get('is_tool', False)}
+                for p in g_sorted
+            ])
+        return display_groups
