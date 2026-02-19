@@ -618,6 +618,17 @@
             opacity: 0.85;
         }
 
+        .hm-chip .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            padding: 0 3px;
+            font-size: 0.7rem;
+            margin-right: 2px;
+        }
+
         /* 履歴ボタン */
         .btn-history {
             background-color: #0ea5e9;
@@ -1053,9 +1064,12 @@
             height: 100%;
         }
 
+        /* ★ 修正箇所： transform-box を追加 ★ */
         .bike-wheel {
             animation: wheelSpin 0.8s linear infinite;
             transform-origin: center;
+            transform-box: fill-box;
+            /* 車輪自身の中心を基準にする */
         }
 
         @keyframes wheelSpin {
@@ -1076,9 +1090,13 @@
             stroke-linejoin: round;
         }
 
+        /* ★ 修正箇所： ペダルも同様に修正 ★ */
         .bike-pedal {
-            animation: pedalSpin 0.8s linear infinite;
+            animation: wheelSpin 0.8s linear infinite;
+            /* 同じアニメーションでOK */
             transform-origin: center;
+            transform-box: fill-box;
+            /* ペダル自身の中心を基準にする */
         }
 
         @keyframes pedalSpin {
@@ -1786,6 +1804,7 @@
                     if (card.classList.contains('couple-blocked')) return;
                     if (selectedMember) {
                         body.appendChild(selectedMember);
+                        sortGroupBody(body);
                         deselectMember();
                         updatePoolCounter();
                         updateGroupCounts();
@@ -1816,7 +1835,7 @@
             el.dataset.tool = member.is_tool ? 'true' : 'false';
 
             let html = '';
-            if (member.is_tool) html += '\ud83d\udd27';
+            if (member.is_tool) html += '<span class="tool-badge">🔧</span>';
             html += member.name;
             html += '<span class="g-text">(' + member.grade + ')</span>';
             el.innerHTML = html;
@@ -1845,7 +1864,9 @@
 
             if (isInGroup) {
                 // グループ内のメンバーをクリック → 未配置に戻す
+                const prevBody = chip.parentElement;
                 document.getElementById('poolList').appendChild(chip);
+                sortGroupBody(prevBody);
                 deselectMember();
                 updatePoolCounter();
                 updateGroupCounts();
@@ -1886,6 +1907,23 @@
                 c.classList.remove('target-highlight');
                 c.classList.remove('couple-blocked');
             });
+        }
+
+        // 学年をソート用数値に変換（M2=6, M1=5, 4, 3, 2, 1）
+        const gradeOrder = { 'M2': 6, 'M1': 5, '4': 4, '3': 3, '2': 2, '1': 1 };
+        function getGradeSortValue(gradeStr) {
+            const s = String(gradeStr).trim().toUpperCase();
+            if (gradeOrder[s] !== undefined) return gradeOrder[s];
+            const nums = s.replace(/[^0-9]/g, '');
+            return nums ? parseInt(nums) : 0;
+        }
+
+        // グループ内のチップを学年降順にソート
+        function sortGroupBody(body) {
+            const chips = Array.from(body.children);
+            if (chips.length <= 1) return;
+            chips.sort((a, b) => getGradeSortValue(b.dataset.grade) - getGradeSortValue(a.dataset.grade));
+            chips.forEach(c => body.appendChild(c));
         }
 
         function updatePoolCounter() {
