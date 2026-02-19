@@ -814,6 +814,144 @@
             border-color: var(--primary);
         }
 
+        /* ====== 恋人ペアセクション ====== */
+        .couples-section {
+            margin-top: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .couples-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fdf2f8;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .couples-toggle:hover {
+            background: #fce7f3;
+        }
+
+        .couples-toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #9d174d;
+        }
+
+        .couples-toggle-arrow {
+            font-size: 0.75rem;
+            color: #9d174d;
+            transition: transform 0.2s;
+        }
+
+        .couples-toggle-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .couples-body {
+            display: none;
+            padding: 16px;
+            background: white;
+        }
+
+        .couples-body.open {
+            display: block;
+        }
+
+        .couples-add-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .couples-add-row select {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .couples-add-row .couple-heart {
+            font-size: 1.2rem;
+            color: #ec4899;
+        }
+
+        .btn-add-couple {
+            background: #ec4899;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-add-couple:hover {
+            background: #db2777;
+        }
+
+        .couples-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .couple-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #fdf2f8;
+            border-radius: 6px;
+            border: 1px solid #fbcfe8;
+            font-size: 0.85rem;
+        }
+
+        .couple-item-names {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #831843;
+            font-weight: 500;
+        }
+
+        .couple-remove {
+            color: #f43f5e;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .couple-remove:hover {
+            background: #ffe4e6;
+        }
+
+        .couples-empty {
+            font-size: 0.82rem;
+            color: #9ca3af;
+            text-align: center;
+            padding: 8px;
+        }
+
         /* ====== ローディング画面 ====== */
         .loading-overlay {
             display: none;
@@ -1032,6 +1170,7 @@
             <textarea name="participants" id="hidden-participants"></textarea>
             <input type="hidden" name="mode" id="hidden-mode" value="auto">
             <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
+            <input type="hidden" name="couples" id="hidden-couples" value="[]">
 
             <div class="controls">
                 <div style="display:flex; gap: 20px;">
@@ -1049,6 +1188,33 @@
                 <div style="display:flex; gap: 15px; align-items: center;">
                     <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
                     <button type="button" class="btn-primary" onclick="showMethodSelection()">次へ: メソッド選択</button>
+                </div>
+
+                <!-- 恋人ペアセクション -->
+                <div class="couples-section">
+                    <div class="couples-toggle" onclick="toggleCouplesPanel()">
+                        <div class="couples-toggle-left">
+                            <span>💕</span>
+                            <span>同じグループにしないペア設定</span>
+                            <span id="couplesCount" style="font-size:0.78rem; color:#ec4899; font-weight:400;"></span>
+                        </div>
+                        <span class="couples-toggle-arrow" id="couplesArrow">▶</span>
+                    </div>
+                    <div class="couples-body" id="couplesBody">
+                        <div class="couples-add-row">
+                            <select id="coupleSelect1">
+                                <option value="">― 選択 ―</option>
+                            </select>
+                            <span class="couple-heart">❤️</span>
+                            <select id="coupleSelect2">
+                                <option value="">― 選択 ―</option>
+                            </select>
+                            <button type="button" class="btn-add-couple" onclick="addCouple()">追加</button>
+                        </div>
+                        <div class="couples-list" id="couplesList">
+                            <div class="couples-empty" id="couplesEmpty">ペアが登録されていません</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -1173,6 +1339,7 @@
             members.forEach((m, i) => {
                 grid.appendChild(createCard(m, i));
             });
+            updateCoupleSelects();
         }
 
         // データ更新
@@ -1242,11 +1409,113 @@
         function updateHiddenField() {
             const csvLines = members.map(m => `${m.name},${m.grade},${m.gender},${m.is_tool ? 'TOOL' : ''}`);
             hiddenInput.value = csvLines.join('\n');
+            // 恋人ペアもセット
+            document.getElementById('hidden-couples').value = JSON.stringify(couplesPairs);
         }
 
         form.addEventListener('submit', () => {
             updateHiddenField();
         });
+
+        // ===== 恋人ペア管理 =====
+        let couplesPairs = [];  // [{name1: '...', name2: '...'}, ...]
+
+        function toggleCouplesPanel() {
+            const body = document.getElementById('couplesBody');
+            const arrow = document.getElementById('couplesArrow');
+            body.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        function updateCoupleSelects() {
+            const sel1 = document.getElementById('coupleSelect1');
+            const sel2 = document.getElementById('coupleSelect2');
+            const val1 = sel1.value;
+            const val2 = sel2.value;
+
+            [sel1, sel2].forEach(sel => {
+                sel.innerHTML = '<option value="">― 選択 ―</option>';
+                members.forEach(m => {
+                    if (m.name) {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = m.name;
+                        sel.appendChild(opt);
+                    }
+                });
+            });
+
+            sel1.value = val1;
+            sel2.value = val2;
+
+            // 削除されたメンバーがペアにいる場合はペアをクリーンアップ
+            const memberNames = new Set(members.map(m => m.name));
+            couplesPairs = couplesPairs.filter(c => memberNames.has(c.name1) && memberNames.has(c.name2));
+            renderCouplesList();
+        }
+
+        function addCouple() {
+            const name1 = document.getElementById('coupleSelect1').value;
+            const name2 = document.getElementById('coupleSelect2').value;
+
+            if (!name1 || !name2) {
+                alert('2人とも選択してください。');
+                return;
+            }
+            if (name1 === name2) {
+                alert('同じ人を選択しています。');
+                return;
+            }
+            // 重複チェック
+            const exists = couplesPairs.some(c =>
+                (c.name1 === name1 && c.name2 === name2) ||
+                (c.name1 === name2 && c.name2 === name1)
+            );
+            if (exists) {
+                alert('このペアは既に登録されています。');
+                return;
+            }
+
+            couplesPairs.push({ name1, name2 });
+            document.getElementById('coupleSelect1').value = '';
+            document.getElementById('coupleSelect2').value = '';
+            renderCouplesList();
+        }
+
+        function removeCouple(index) {
+            couplesPairs.splice(index, 1);
+            renderCouplesList();
+        }
+
+        function renderCouplesList() {
+            const list = document.getElementById('couplesList');
+            const empty = document.getElementById('couplesEmpty');
+            const count = document.getElementById('couplesCount');
+
+            if (couplesPairs.length === 0) {
+                list.innerHTML = '';
+                list.appendChild(empty);
+                empty.style.display = 'block';
+                count.textContent = '';
+            } else {
+                empty.style.display = 'none';
+                list.innerHTML = '';
+                count.textContent = `(${couplesPairs.length}組)`;
+                couplesPairs.forEach((c, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'couple-item';
+                    item.innerHTML = `
+                        <div class="couple-item-names">
+                            <span>${c.name1}</span>
+                            <span>❤️</span>
+                            <span>${c.name2}</span>
+                        </div>
+                        <span class="couple-remove" onclick="removeCouple(${i})">×</span>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        }
 
         // 初期表示用のダミーデータ（初回のみ）
         if (members.length === 0) {

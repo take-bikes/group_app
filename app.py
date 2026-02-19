@@ -115,6 +115,16 @@ def index():
         for pair, count in existing_history.items():
             optimizer.pair_history[pair] = count
 
+        # カップルペアの偽装履歴を注入（同じグループを回避するため）
+        couples_json = request.form.get('couples', '[]')
+        couples = json.loads(couples_json)
+        for couple in couples:
+            name1 = couple.get('name1', '')
+            name2 = couple.get('name2', '')
+            if name1 and name2:
+                pair_key = optimizer._get_pair_key(name1, name2)
+                optimizer.pair_history[pair_key] += 3  # 大きな偽装値で回避
+
         # モード判定
         mode = request.form.get('mode', 'auto')
         
