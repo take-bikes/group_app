@@ -6,6 +6,7 @@
     <title>結果発表</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         body {
@@ -15,7 +16,6 @@
             background-color: #f9fafb;
         }
 
-        /* カードデザイン */
         .card {
             background: white;
             border-radius: 8px;
@@ -43,24 +43,36 @@
             border-bottom: 2px solid #e5e7eb;
         }
 
-        /* メンバーリストのレイアウト */
+        /* メンバーリストのレイアウト（ドロップ先エリア） */
         .members-list {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            /* アイテム間の隙間 */
             align-items: center;
+            min-height: 40px;
+            /* 空になってもドロップできるように高さを確保 */
+            padding: 8px;
+            border: 2px dashed transparent;
+            /* ドラッグ中のガイドライン用 */
+            border-radius: 6px;
+            transition: background-color 0.2s;
         }
 
-        /* 個々の人物ブロック */
+        /* 個々の人物ブロック（ドラッグ可能なアイテム） */
         .person-wrapper {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            /* バッジと名前の間隔 */
+            cursor: grab;
+            /* ドラッグできることを示すカーソル */
+            transition: transform 0.2s;
+            position: relative;
         }
 
-        /* 名前ボックス（Picnicのlabelをカスタマイズ） */
+        .person-wrapper:active {
+            cursor: grabbing;
+        }
+
         .label {
             font-size: 0.95em;
             padding: 4px 10px;
@@ -68,60 +80,96 @@
             color: white;
             display: inline-block;
             margin: 0;
-            /* Picnicのデフォルトマージンを消す */
+            user-select: none;
+            /* ドラッグ時にテキスト選択されないようにする */
         }
 
-        /* 男性（デフォルト）のデザイン：青 */
         .label.male {
             background-color: #2563eb;
-            /* 鮮やかな青 */
         }
 
-        /* 女性のデザイン：ピンク */
         .label.female {
             background-color: #e91e63;
-            /* ピンク */
         }
 
-        /* 学年の文字サイズを少し小さく */
         .grade-text {
             font-size: 0.85em;
             opacity: 0.9;
             margin-left: 2px;
         }
 
-        /* 工具係バッジ */
         .tool-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             background-color: #fffbeb;
-            /* 薄いアンバー背景 */
             color: #b45309;
-            /* 濃いアンバー文字 */
             border: 1px solid #fcd34d;
-            /* 枠線 */
             padding: 2px 6px;
             border-radius: 4px;
-            /* 名前ボックスに合わせて少し角ばらせる */
             font-size: 0.75rem;
             font-weight: 700;
             white-space: nowrap;
             line-height: 1.5;
-            /* 高さを名前ボックスに合わせるため調整 */
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            user-select: none;
         }
 
         .tool-badge i {
             font-size: 0.7rem;
         }
 
-        /* アクションボタンエリア */
         .actions {
             margin-bottom: 20px;
             display: flex;
             gap: 10px;
             align-items: center;
+        }
+
+        /* ====== ドラッグ＆ドロップ時のアニメーション ====== */
+        /* ドラッグ中の要素が半透明になる */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        /* リスト自体にドラッグアイテムが乗った時のハイライト */
+        .sortable-drag-over {
+            background-color: #e0f2fe;
+            border-color: #38bdf8;
+        }
+
+        /* 重複が発生したときのアニメーション（赤く光る） */
+        @keyframes pulse-duplicate {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+                z-index: 10;
+            }
+
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+                z-index: 10;
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                z-index: 1;
+            }
+        }
+
+        .flash-duplicate {
+            animation: pulse-duplicate 0.8s cubic-bezier(0.4, 0, 0.6, 1);
+            border-radius: 4px;
+        }
+
+        /* アニメーション中は背景も少し赤くする */
+        .flash-duplicate .label {
+            background-color: #ef4444 !important;
+            transition: background-color 0.3s;
         }
     </style>
 </head>
@@ -142,7 +190,7 @@
         </a>
 
         <form action="/save_result" method="POST" style="margin:0;">
-            <input type="hidden" name="schedule_data" value="{{ schedule_json }}">
+            <input type="hidden" name="schedule_data" id="scheduleDataInput" value="{{ schedule_json }}">
             <button type="submit" class="success">
                 <i class="fas fa-save"></i> データベースに記録
             </button>
@@ -150,13 +198,12 @@
     </div>
 
     {% for day in schedule %}
-    <div class="card">
+    <div class="card" data-day="{{ day.day }}">
         <header>
             <h3 style="margin:0; font-size: 1.2rem;">
                 {{ day.day }}日目
                 <span style="font-size:0.75em; color:#6b7280; font-weight: normal; margin-left: 10px;">
-                    <i class="fas fa-info-circle"></i> 今回の重複: <b>{{ day.details.duplicate_count }}</b> 組
-                    {% if day.details.tool > 0 %} / <span style="color:#d97706;">⚠ 工具配置コストあり</span>{% endif %}
+                    <i class="fas fa-hand-pointer"></i> メンバーをドラッグして移動できます
                 </span>
             </h3>
         </header>
@@ -178,11 +225,12 @@
                             {% for person in group %}
                             {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
 
-                            <div class="person-wrapper">
+                            <div class="person-wrapper" data-name="{{ person.name }}" data-grade="{{ person.grade }}"
+                                data-gender="{{ person.gender }}"
+                                data-tool="{{ 'true' if person.is_tool else 'false' }}">
+
                                 {% if person.is_tool %}
-                                <span class="tool-badge">
-                                    <i class="fas fa-wrench"></i> 工具係
-                                </span>
+                                <span class="tool-badge"><i class="fas fa-wrench"></i> 工具係</span>
                                 {% endif %}
 
                                 <span class="label {{ 'female' if is_female else 'male' }}">
@@ -199,6 +247,139 @@
         </table>
     </div>
     {% endfor %}
+
+    <script>
+        // バックエンドから渡されたDBの履歴 ( "名前A::名前B" : 過去の回数 )
+        const dbHistory = JSON.parse('{{ db_history_json | safe }}');
+
+        // 名前をソートして一意のペアキーを作成する関数
+        function getPairKey(name1, name2) {
+            return [name1, name2].sort().join("::");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 全ての .card (1日目、2日目...) をループ
+            document.querySelectorAll('.card').forEach(card => {
+                const dayStr = card.dataset.day;
+                const listElements = card.querySelectorAll('.members-list');
+
+                // 各日のグループを Sortable 化 (同じ日の中でのみ移動可能にする)
+                listElements.forEach(list => {
+                    new Sortable(list, {
+                        group: 'day-' + dayStr, // これにより同じ日のグループ間でだけドラッグ可能
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        dragClass: 'sortable-drag-over',
+
+                        // ドロップ操作が完了したときに発火
+                        onEnd: function (evt) {
+                            handleDrop(evt);
+                        }
+                    });
+                });
+            });
+        });
+
+        // ドロップされたときの処理
+        function handleDrop(evt) {
+            const item = evt.item;          // ドラッグされた要素
+            const toList = evt.to;          // ドロップ先のリスト
+            const fromList = evt.from;      // ドラッグ元のリスト
+
+            // 変更があればデータを再計算して保存用JSONを更新する
+            updateScheduleData();
+
+            // 同じリスト内の移動でなければ重複チェックを行う
+            if (toList !== fromList) {
+                checkDuplicates(item, toList);
+            }
+        }
+
+        // 動的重複チェック関数
+        function checkDuplicates(droppedItem, toList) {
+            const targetDay = parseInt(toList.closest('.card').dataset.day);
+            const droppedName = droppedItem.dataset.name;
+
+            // 1. 直前の日(day-1)までのセッション履歴をDOMから構築
+            // (今日までのグループ分け状況を把握して、DB履歴に加算する)
+            let currentHistory = Object.assign({}, dbHistory);
+
+            document.querySelectorAll('.card').forEach(card => {
+                const day = parseInt(card.dataset.day);
+                if (day < targetDay) {
+                    card.querySelectorAll('.members-list').forEach(groupList => {
+                        // グループ内のメンバー名の配列を作成
+                        const members = Array.from(groupList.children).map(el => el.dataset.name);
+                        // グループ内の全ペアを履歴に追加
+                        for (let i = 0; i < members.length; i++) {
+                            for (let j = i + 1; j < members.length; j++) {
+                                const key = getPairKey(members[i], members[j]);
+                                currentHistory[key] = (currentHistory[key] || 0) + 1;
+                            }
+                        }
+                    });
+                }
+            });
+
+            // 2. ドロップ先のグループで重複を探す
+            let hasDuplicate = false;
+            Array.from(toList.children).forEach(otherItem => {
+                if (otherItem === droppedItem) return; // 自分自身はスキップ
+
+                const otherName = otherItem.dataset.name;
+                const key = getPairKey(droppedName, otherName);
+
+                // DB履歴、またはこれまでの日程で1回以上同じグループだった場合
+                if (currentHistory[key] && currentHistory[key] > 0) {
+                    hasDuplicate = true;
+                    // アニメーション用のクラスを付与
+                    otherItem.classList.add('flash-duplicate');
+                    droppedItem.classList.add('flash-duplicate');
+                }
+            });
+
+            // 3. アニメーションを1秒後に取り除く
+            if (hasDuplicate) {
+                setTimeout(() => {
+                    document.querySelectorAll('.flash-duplicate').forEach(el => {
+                        el.classList.remove('flash-duplicate');
+                    });
+                }, 1000);
+            }
+        }
+
+        // DOMの現在の状態を読み取って、Pythonに送る保存用JSONを再生成する
+        function updateScheduleData() {
+            const schedule = [];
+
+            document.querySelectorAll('.card').forEach(card => {
+                const dayNum = parseInt(card.dataset.day);
+                const groups = [];
+
+                card.querySelectorAll('tbody tr').forEach(tr => {
+                    const groupMembers = [];
+                    // 移動後のメンバーリストを取得
+                    tr.querySelectorAll('.person-wrapper').forEach(person => {
+                        groupMembers.push({
+                            name: person.dataset.name,
+                            grade: person.dataset.grade,
+                            gender: person.dataset.gender,
+                            is_tool: person.dataset.tool === 'true'
+                        });
+                    });
+                    groups.push(groupMembers);
+                });
+
+                schedule.push({
+                    day: dayNum,
+                    groups: groups
+                });
+            });
+
+            // 隠しinput要素の値を更新（データベースに記録ボタンを押した時にこのデータが飛ぶ）
+            document.getElementById('scheduleDataInput').value = JSON.stringify(schedule);
+        }
+    </script>
 </body>
 
 </html>

@@ -121,8 +121,12 @@ def index():
         # 自動保存は廃止し、手動保存のためのデータを準備
         schedule_json = json.dumps(schedule, ensure_ascii=False)
 
-        message = "条件を考慮してグループ分けしました！"
-        return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json)
+        # ★追加: DBの履歴データをJavaScriptで扱いやすい形式( 文字列::文字列 )に変換
+        js_history = {f"{k[0]}::{k[1]}": v for k, v in existing_history.items()}
+        db_history_json = json.dumps(js_history, ensure_ascii=False)
+
+        message = "条件を考慮してグループ分けしました！メンバーをドラッグ＆ドロップで手動調整できます。"
+        return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json, db_history_json=db_history_json)
 
     return render_template('index.html')
 
