@@ -1698,6 +1698,10 @@
         let confirmedDays = {};
         let selectedMember = null;  // 現在選択中のメンバーDOM要素
 
+        // Undo/Redo スタック
+        let undoStack = [];
+        let redoStack = [];
+
         function showMethodSelection() {
             updateHiddenField();
             if (members.length === 0) {
@@ -1803,6 +1807,7 @@
                     // 恋人ブロック中のグループには配置できない
                     if (card.classList.contains('couple-blocked')) return;
                     if (selectedMember) {
+                        saveHybridState();
                         body.appendChild(selectedMember);
                         sortGroupBody(body);
                         deselectMember();
@@ -1823,6 +1828,11 @@
             updatePoolCounter();
             updateGroupCounts();
             document.getElementById('confirmDayBtn').disabled = false;
+
+            // Undo/Redo スタックリセット、初期状態を保存
+            undoStack = [];
+            redoStack = [];
+            saveHybridState();
         }
 
         function createChip(member) {
@@ -1864,6 +1874,7 @@
 
             if (isInGroup) {
                 // グループ内のメンバーをクリック → 未配置に戻す
+                saveHybridState();
                 const prevBody = chip.parentElement;
                 document.getElementById('poolList').appendChild(chip);
                 sortGroupBody(prevBody);
@@ -1925,6 +1936,85 @@
             chips.sort((a, b) => getGradeSortValue(b.dataset.grade) - getGradeSortValue(a.dataset.grade));
             chips.forEach(c => body.appendChild(c));
         }
+
+        // ===== Undo / Redo =====
+        function captureHybridSnapshot() {
+            // 各チップの所属コンテナを記録
+            const snapshot = [];
+            document.querySelectorAll('.hm-chip').forEach(chip => {
+                const parent = chip.parentElement;
+                let container;
+                if (parent.id === 'poolList') {
+                    container = 'pool';
+                } else if (parent.classList.contains('group-card-body')) {
+                    container = 'group-' + parent.dataset.group;
+                } else {
+                    container = 'pool';
+                }
+                snapshot.push({ name: chip.dataset.name, container });
+            });
+            return snapshot;
+        }
+
+        function saveHybridState() {
+            undoStack.push(captureHybridSnapshot());
+            redoStack = [];  // 新しい操作でredoはクリア
+        }
+
+        function restoreHybridSnapshot(snapshot) {
+            deselectMember();
+            const chipMap = {};
+            document.querySelectorAll('.hm-chip').forEach(chip => {
+                chipMap[chip.dataset.name] = chip;
+            });
+
+            snapshot.forEach(entry => {
+                const chip = chipMap[entry.name];
+                if (!chip) return;
+                if (entry.container === 'pool') {
+                    document.getElementById('poolList').appendChild(chip);
+                } else {
+                    const groupIdx = entry.container.replace('group-', '');
+                    const body = document.querySelector(`.group-card-body[data-group="${groupIdx}"]`);
+                    if (body) body.appendChild(chip);
+                }
+            });
+
+            // 各グループをソート
+            document.querySelectorAll('.group-card-body').forEach(body => sortGroupBody(body));
+            updatePoolCounter();
+            updateGroupCounts();
+        }
+
+        function undoHybrid() {
+            if (undoStack.length <= 1) return;  // 初期状態が1つは残す
+            const current = undoStack.pop();
+            redoStack.push(current);
+            const prev = undoStack[undoStack.length - 1];
+            restoreHybridSnapshot(prev);
+        }
+
+        function redoHybrid() {
+            if (redoStack.length === 0) return;
+            const next = redoStack.pop();
+            undoStack.push(next);
+            restoreHybridSnapshot(next);
+        }
+
+        // Ctrl+Z / Ctrl+Y キーボードショートカット
+        document.addEventListener('keydown', (e) => {
+            // ハイブリッドエディタが開いている時のみ
+            const overlay = document.getElementById('hybridOverlay');
+            if (!overlay || !overlay.classList.contains('visible')) return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undoHybrid();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                e.preventDefault();
+                redoHybrid();
+            }
+        });
 
         function updatePoolCounter() {
             const pool = document.getElementById('poolList');
