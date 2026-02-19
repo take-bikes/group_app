@@ -813,6 +813,203 @@
         .search-box:focus {
             border-color: var(--primary);
         }
+
+        /* ====== ローディング画面 ====== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #0f172a;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        /* カーソル追従グロー */
+        .cursor-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: left 0.15s ease-out, top 0.15s ease-out;
+            z-index: 1;
+        }
+
+        /* パーティクル */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* 背景グリッド */
+        .loading-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(60px, 60px);
+            }
+        }
+
+        /* メインコンテンツ */
+        .loading-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: white;
+        }
+
+        /* 自転車アニメーション */
+        .bike-container {
+            width: 160px;
+            height: 100px;
+            margin: 0 auto 32px;
+            position: relative;
+        }
+
+        .bike-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .bike-wheel {
+            animation: wheelSpin 0.8s linear infinite;
+            transform-origin: center;
+        }
+
+        @keyframes wheelSpin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .bike-body {
+            fill: none;
+            stroke: #818cf8;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .bike-pedal {
+            animation: pedalSpin 0.8s linear infinite;
+            transform-origin: center;
+        }
+
+        @keyframes pedalSpin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* テキスト */
+        .loading-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading-message {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 28px;
+            min-height: 1.4em;
+            transition: opacity 0.3s;
+        }
+
+        /* プログレスバー */
+        .loading-bar-track {
+            width: 220px;
+            height: 4px;
+            background: #1e293b;
+            border-radius: 2px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            width: 30%;
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a78bfa, #c084fc);
+            border-radius: 2px;
+            animation: barSlide 1.5s ease-in-out infinite;
+        }
+
+        @keyframes barSlide {
+            0% {
+                width: 0%;
+                margin-left: 0;
+            }
+
+            50% {
+                width: 60%;
+                margin-left: 20%;
+            }
+
+            100% {
+                width: 0%;
+                margin-left: 100%;
+            }
+        }
+
+        /* 浮遊ドット */
+        .floating-dot {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: floatDot 6s ease-in-out infinite;
+        }
+
+        @keyframes floatDot {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.2);
+            }
+        }
     </style>
 </head>
 
@@ -1223,6 +1420,7 @@
             if (selectedMethod === 'auto') {
                 document.getElementById('hidden-mode').value = 'auto';
                 updateHiddenField();
+                showLoading();
                 form.submit();
             } else {
                 confirmedDays = {};
@@ -1465,7 +1663,148 @@
             updateHiddenField();
             const manualDays = Object.values(confirmedDays);
             document.getElementById('hidden-manual-days').value = JSON.stringify(manualDays);
+            showLoading();
             form.submit();
+        }
+    </script>
+
+    <!-- ローディングオーバーレイ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-grid"></div>
+        <div class="cursor-glow" id="cursorGlow"></div>
+
+        <div class="loading-content">
+            <div class="bike-container">
+                <svg viewBox="0 0 160 100">
+                    <!-- 後輪 -->
+                    <g class="bike-wheel" style="transform-origin: 40px 70px">
+                        <circle cx="40" cy="70" r="22" fill="none" stroke="#475569" stroke-width="2" />
+                        <line x1="40" y1="48" x2="40" y2="70" stroke="#475569" stroke-width="1.5" />
+                        <line x1="40" y1="70" x2="62" y2="70" stroke="#475569" stroke-width="1.5" />
+                        <line x1="40" y1="70" x2="40" y2="92" stroke="#475569" stroke-width="1.5" />
+                        <line x1="40" y1="70" x2="18" y2="70" stroke="#475569" stroke-width="1.5" />
+                    </g>
+                    <!-- 前輪 -->
+                    <g class="bike-wheel" style="transform-origin: 120px 70px">
+                        <circle cx="120" cy="70" r="22" fill="none" stroke="#475569" stroke-width="2" />
+                        <line x1="120" y1="48" x2="120" y2="70" stroke="#475569" stroke-width="1.5" />
+                        <line x1="120" y1="70" x2="142" y2="70" stroke="#475569" stroke-width="1.5" />
+                        <line x1="120" y1="70" x2="120" y2="92" stroke="#475569" stroke-width="1.5" />
+                        <line x1="120" y1="70" x2="98" y2="70" stroke="#475569" stroke-width="1.5" />
+                    </g>
+                    <!-- フレーム -->
+                    <polyline class="bike-body" points="40,70 75,40 120,70" />
+                    <polyline class="bike-body" points="75,40 75,70" />
+                    <polyline class="bike-body" points="75,40 60,25" />
+                    <line class="bike-body" x1="55" y1="25" x2="68" y2="25" />
+                    <polyline class="bike-body" points="75,40 100,38 120,70" />
+                    <!-- ペダル -->
+                    <g class="bike-pedal" style="transform-origin: 75px 70px">
+                        <line x1="75" y1="62" x2="75" y2="78" stroke="#818cf8" stroke-width="2.5"
+                            stroke-linecap="round" />
+                    </g>
+                </svg>
+            </div>
+
+            <div class="loading-title">グループを最適化中...</div>
+            <div class="loading-message" id="loadingMessage">重複ペアを最小化しています</div>
+            <div class="loading-bar-track">
+                <div class="loading-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ローディング画面 ---
+        const loadingMessages = [
+            '重複ペアを最小化しています',
+            '工具係を各グループに配置中...',
+            'グループバランスを調整中...',
+            '学年・性別を考慮した最適解を探索中...',
+            'ランダムシャッフルで局所解を回避中...',
+            '最適な組み合わせを検証中...',
+            '🚴 チャリ部のために全力計算中!',
+            'ペア履歴をチェック中...',
+            'もう少しだけお待ちください...',
+            '交換改善アルゴリズム実行中...'
+        ];
+
+        let messageInterval = null;
+        let particleAnimFrameId = null;
+
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('visible');
+
+            // メッセージローテーション
+            let msgIdx = 0;
+            const msgEl = document.getElementById('loadingMessage');
+            messageInterval = setInterval(() => {
+                msgEl.style.opacity = '0';
+                setTimeout(() => {
+                    msgIdx = (msgIdx + 1) % loadingMessages.length;
+                    msgEl.textContent = loadingMessages[msgIdx];
+                    msgEl.style.opacity = '1';
+                }, 300);
+            }, 2500);
+
+            // 浮遊ドット生成
+            for (let i = 0; i < 12; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'floating-dot';
+                const size = Math.random() * 10 + 4;
+                const colors = ['#6366f1', '#a78bfa', '#c084fc', '#f472b6', '#38bdf8'];
+                dot.style.cssText = `
+                    width: ${size}px; height: ${size}px;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    animation-delay: ${Math.random() * 6}s;
+                    animation-duration: ${4 + Math.random() * 4}s;
+                `;
+                overlay.appendChild(dot);
+            }
+
+            // パーティクルプール
+            const particles = [];
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const colors = ['#818cf8', '#c084fc', '#f472b6', '#38bdf8', '#34d399'];
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                overlay.appendChild(p);
+                particles.push({ el: p, x: 0, y: 0, targetX: 0, targetY: 0, delay: i * 2 });
+            }
+
+            // カーソル追従
+            const glow = document.getElementById('cursorGlow');
+            let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+
+            overlay.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                glow.style.left = mouseX + 'px';
+                glow.style.top = mouseY + 'px';
+            });
+
+            // パーティクルアニメーション
+            function animateParticles() {
+                particles.forEach((p, i) => {
+                    const angle = (Date.now() * 0.001 + i * 0.5) * 1;
+                    const radius = 30 + (i % 5) * 15;
+                    p.targetX = mouseX + Math.cos(angle) * radius;
+                    p.targetY = mouseY + Math.sin(angle) * radius;
+                    p.x += (p.targetX - p.x) * 0.08;
+                    p.y += (p.targetY - p.y) * 0.08;
+                    p.el.style.left = p.x + 'px';
+                    p.el.style.top = p.y + 'px';
+                    p.el.style.opacity = '0.7';
+                    const scale = 0.8 + Math.sin(Date.now() * 0.003 + i) * 0.5;
+                    p.el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                });
+                particleAnimFrameId = requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
         }
     </script>
 
