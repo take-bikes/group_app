@@ -948,10 +948,13 @@
         });
 
         // 送信時にCSVテキスト形式に変換して隠しフィールドに入れる
-        form.addEventListener('submit', () => {
-            // 名前,学年,性別,工具フラグ
+        function updateHiddenField() {
             const csvLines = members.map(m => `${m.name},${m.grade},${m.gender},${m.is_tool ? 'TOOL' : ''}`);
             hiddenInput.value = csvLines.join('\n');
+        }
+
+        form.addEventListener('submit', () => {
+            updateHiddenField();
         });
 
         // 初期表示用のダミーデータ（初回のみ）
