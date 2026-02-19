@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Grouping Tool</title>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -330,211 +329,293 @@
             line-height: 1.5;
         }
 
-        /* ====== ハイブリッド編集エリア ====== */
-        .hybrid-editor {
+        /* ====== ハイブリッド全画面オーバーレイ ====== */
+        .hybrid-overlay {
             display: none;
-            margin-top: 20px;
-            padding: 24px;
-            background: #fffbeb;
-            border-radius: 12px;
-            border: 1px solid #fcd34d;
-        }
-
-        .hybrid-editor.visible {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .hybrid-editor h3 {
-            margin: 0 0 8px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #92400e;
-        }
-
-        .hybrid-editor p {
-            margin: 0 0 16px;
-            font-size: 0.85rem;
-            color: #b45309;
-        }
-
-        .hybrid-day-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .hybrid-day-tab {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 2px solid #e5e7eb;
-            background: white;
-            cursor: pointer;
-            font-size: 0.88rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            color: var(--text-sub);
-        }
-
-        .hybrid-day-tab:hover {
-            border-color: #f59e0b;
-        }
-
-        .hybrid-day-tab.active {
-            border-color: #f59e0b;
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .hybrid-day-tab.done {
-            border-color: #22c55e;
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .hybrid-groups-area {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: white;
-            overflow: hidden;
-        }
-
-        .hybrid-group-row {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid #f3f4f6;
-            gap: 12px;
-        }
-
-        .hybrid-group-row:last-child {
-            border-bottom: none;
-        }
-
-        .hybrid-group-label {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #6b7280;
-            white-space: nowrap;
-            min-width: 80px;
-        }
-
-        .hybrid-drop-zone {
-            flex: 1;
-            min-height: 44px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            padding: 6px;
-            border: 2px dashed #d1d5db;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .hybrid-drop-zone:empty::before {
-            content: 'メンバーをここにドラッグ';
-            color: #9ca3af;
-            font-size: 0.8rem;
-        }
-
-        .hybrid-member {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.88rem;
-            font-weight: 500;
-            cursor: grab;
-            user-select: none;
-            color: white;
-        }
-
-        .hybrid-member.male {
-            background: #2563eb;
-        }
-
-        .hybrid-member.female {
-            background: #e91e63;
-        }
-
-        .hybrid-member .grade-text {
-            font-size: 0.78rem;
-            opacity: 0.85;
-        }
-
-        /* 未配置メンバープール */
-        .unassigned-pool {
-            margin-top: 12px;
-            padding: 12px;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
             background: #f3f4f6;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
+            flex-direction: column;
         }
 
-        .unassigned-pool h4 {
-            margin: 0 0 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-sub);
-        }
-
-        .unassigned-list {
+        .hybrid-overlay.visible {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            min-height: 30px;
         }
 
-        .hybrid-actions {
+        /* トップバー */
+        .hybrid-topbar {
             display: flex;
-            gap: 12px;
-            margin-top: 16px;
             align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: #1e293b;
+            color: white;
+            flex-shrink: 0;
+            gap: 16px;
         }
 
-        .btn-confirm-day {
-            background: #f59e0b;
+        .hybrid-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hybrid-topbar h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .hybrid-topbar-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .hybrid-topbar-tab {
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #334155;
+            color: #cbd5e1;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .hybrid-topbar-tab:hover {
+            background: #475569;
+        }
+
+        .hybrid-topbar-tab.active {
+            background: #4f46e5;
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
+            border-color: #6366f1;
+        }
+
+        .hybrid-topbar-tab.done {
+            background: #166534;
+            color: #bbf7d0;
+            border-color: #22c55e;
+        }
+
+        .hybrid-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hybrid-topbar-status {
+            font-size: 0.82rem;
+            color: #94a3b8;
+        }
+
+        .ht-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
             border: none;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s;
         }
 
-        .btn-confirm-day:hover {
+        .ht-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ht-btn.confirm {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .ht-btn.confirm:hover:not(:disabled) {
             background: #d97706;
         }
 
-        .btn-confirm-day:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-        }
-
-        .btn-submit-hybrid {
-            background: var(--primary);
+        .ht-btn.submit {
+            background: #22c55e;
             color: white;
-            padding: 12px 28px;
-            border-radius: 8px;
-            border: none;
+        }
+
+        .ht-btn.submit:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        .ht-btn.close {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .ht-btn.close:hover {
+            background: #64748b;
+        }
+
+        /* メインエリア: 2パネル */
+        .hybrid-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* === 左パネル: 未配置メンバー === */
+        .hybrid-pool-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .pool-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .pool-header h3 {
+            margin: 0 0 6px;
+            font-size: 0.92rem;
             font-weight: 700;
-            font-size: 1rem;
+            color: #374151;
+        }
+
+        .pool-header .pool-counter {
+            font-size: 0.78rem;
+            color: #6b7280;
+        }
+
+        .pool-header .pool-counter b {
+            color: #ef4444;
+        }
+
+        .pool-hint {
+            padding: 8px 16px;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            color: #4338ca;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pool-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+        }
+
+        /* === 右パネル: グループグリッド === */
+        .hybrid-groups-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .group-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.15s;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
-        .btn-submit-hybrid:hover {
-            background: var(--primary-hover);
+        .group-card:hover {
+            border-color: #a5b4fc;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
         }
 
-        .btn-submit-hybrid:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
+        .group-card.target-highlight {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .group-card-header {
+            padding: 10px 14px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-card-header .gc-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #374151;
+        }
+
+        .group-card-header .gc-count {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .group-card-body {
+            padding: 10px;
+            min-height: 48px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+        }
+
+        .group-card-body:empty::before {
+            content: 'クリックで配置';
+            color: #d1d5db;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+
+        /* メンバーチップ（共通） */
+        .hm-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            color: white;
+            transition: all 0.12s;
+            border: 2px solid transparent;
+        }
+
+        .hm-chip:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .hm-chip.selected {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.4);
+            transform: scale(1.05);
+        }
+
+        .hm-chip.male {
+            background: #2563eb;
+        }
+
+        .hm-chip.female {
+            background: #e91e63;
+        }
+
+        .hm-chip .g-text {
+            font-size: 0.72rem;
+            opacity: 0.85;
         }
 
         /* 履歴ボタン */
@@ -795,26 +876,32 @@
             </div>
         </div>
 
-        <!-- ハイブリッド編集エリア -->
-        <div class="hybrid-editor" id="hybridEditor">
-            <h3>🔧 ハイブリッドモード: 手動グループ編集</h3>
-            <p>手動で決めたい日程のタブを選び、メンバーをドラッグしてグループに配置してください。確定した日程は緑色になります。</p>
-
-            <div class="hybrid-day-tabs" id="hybridDayTabs"></div>
-
-            <div class="hybrid-groups-area" id="hybridGroupsArea"></div>
-
-            <div class="unassigned-pool">
-                <h4>📦 未配置メンバー</h4>
-                <div class="unassigned-list" id="unassignedList"></div>
+        <!-- ハイブリッド全画面オーバーレイ -->
+        <div class="hybrid-overlay" id="hybridOverlay">
+            <div class="hybrid-topbar">
+                <div class="hybrid-topbar-left">
+                    <h2>🔧 手動グループ編集</h2>
+                    <div class="hybrid-topbar-tabs" id="hybridDayTabs"></div>
+                </div>
+                <div class="hybrid-topbar-right">
+                    <span class="hybrid-topbar-status" id="hybridStatus"></span>
+                    <button class="ht-btn confirm" id="confirmDayBtn" onclick="confirmCurrentDay()">✅ この日を確定</button>
+                    <button class="ht-btn submit" id="submitHybridBtn" onclick="submitHybrid()" disabled>🚀 実行</button>
+                    <button class="ht-btn close" onclick="closeHybridEditor()">✕ 閉じる</button>
+                </div>
             </div>
-
-            <div class="hybrid-actions">
-                <button type="button" class="btn-confirm-day" id="confirmDayBtn" onclick="confirmCurrentDay()">✅
-                    この日を確定</button>
-                <button type="button" class="btn-submit-hybrid" id="submitHybridBtn" onclick="submitHybrid()"
-                    disabled>🚀 残りを自動最適化して実行</button>
-                <span id="hybridStatus" style="font-size: 0.85rem; color: #6b7280;"></span>
+            <div class="hybrid-main">
+                <div class="hybrid-pool-panel">
+                    <div class="pool-header">
+                        <h3>📦 未配置メンバー</h3>
+                        <div class="pool-counter" id="poolCounter">残り: <b>0</b>名</div>
+                    </div>
+                    <div class="pool-hint">👆 メンバーをクリックして選択 → 右のグループをクリックで配置<br>👇 グループ内のメンバーをクリックで未配置に戻す</div>
+                    <div class="pool-list" id="poolList"></div>
+                </div>
+                <div class="hybrid-groups-panel">
+                    <div class="groups-grid" id="groupsGrid"></div>
+                </div>
             </div>
         </div>
 
@@ -1105,10 +1192,10 @@
         // ======================================================
         let selectedMethod = 'auto';
         let hybridCurrentDay = 1;
-        let confirmedDays = {};  // { dayNum: { groups: [[...], ...] } }
+        let confirmedDays = {};
+        let selectedMember = null;  // 現在選択中のメンバーDOM要素
 
         function showMethodSelection() {
-            // メンバーがいない場合は警告
             updateHiddenField();
             if (members.length === 0) {
                 alert('参加者を先に追加してください。');
@@ -1122,35 +1209,35 @@
             selectedMethod = method;
             document.getElementById('methodAuto').classList.toggle('selected', method === 'auto');
             document.getElementById('methodHybrid').classList.toggle('selected', method === 'hybrid');
-            // 全自動の場合はボタンテキストを変更
             document.getElementById('methodNextBtn').textContent = method === 'auto' ? '実行' : '手動編集へ';
         }
 
         function confirmMethod() {
             if (selectedMethod === 'auto') {
-                // 全自動: そのままフォーム送信
                 document.getElementById('hidden-mode').value = 'auto';
                 updateHiddenField();
                 form.submit();
             } else {
-                // ハイブリッド: 手動編集UIを表示
                 confirmedDays = {};
                 initHybridEditor();
             }
         }
 
+        // --- ハイブリッドエディタ ---
         function initHybridEditor() {
             const numDays = parseInt(document.getElementById('numDaysInput').value);
             const numGroups = parseInt(document.getElementById('numGroupsInput').value);
 
-            document.getElementById('hybridEditor').classList.add('visible');
+            // 全画面オーバーレイを表示
+            document.getElementById('hybridOverlay').classList.add('visible');
+            document.body.style.overflow = 'hidden';
 
-            // 日程タブを生成
+            // 日程タブ生成
             const tabsContainer = document.getElementById('hybridDayTabs');
             tabsContainer.innerHTML = '';
             for (let d = 1; d <= numDays; d++) {
                 const tab = document.createElement('div');
-                tab.className = 'hybrid-day-tab' + (d === 1 ? ' active' : '');
+                tab.className = 'hybrid-topbar-tab' + (d === 1 ? ' active' : '');
                 tab.textContent = d + '日目';
                 tab.dataset.day = d;
                 tab.onclick = () => switchHybridDay(d);
@@ -1158,110 +1245,162 @@
             }
 
             hybridCurrentDay = 1;
+            selectedMember = null;
             buildHybridGroups(numGroups);
             updateHybridStatus();
+        }
 
-            document.getElementById('hybridEditor').scrollIntoView({ behavior: 'smooth' });
+        function closeHybridEditor() {
+            document.getElementById('hybridOverlay').classList.remove('visible');
+            document.body.style.overflow = '';
         }
 
         function switchHybridDay(dayNum) {
-            // 現在の日が確定済みなら編集不可
             if (confirmedDays[dayNum]) {
                 alert(dayNum + '日目は既に確定済みです。');
                 return;
             }
-
             hybridCurrentDay = dayNum;
+            selectedMember = null;
             const numGroups = parseInt(document.getElementById('numGroupsInput').value);
-
-            // タブのactive状態を更新
-            document.querySelectorAll('.hybrid-day-tab').forEach(t => {
-                t.classList.toggle('active', parseInt(t.dataset.day) === dayNum);
+            document.querySelectorAll('.hybrid-topbar-tab').forEach(t => {
+                const d = parseInt(t.dataset.day);
+                if (confirmedDays[d]) return; // done状態はそのまま
+                t.classList.toggle('active', d === dayNum);
             });
-
             buildHybridGroups(numGroups);
         }
 
         function buildHybridGroups(numGroups) {
-            const area = document.getElementById('hybridGroupsArea');
-            area.innerHTML = '';
+            const grid = document.getElementById('groupsGrid');
+            grid.innerHTML = '';
 
             for (let g = 0; g < numGroups; g++) {
-                const row = document.createElement('div');
-                row.className = 'hybrid-group-row';
+                const card = document.createElement('div');
+                card.className = 'group-card';
+                card.dataset.group = g;
 
-                const label = document.createElement('div');
-                label.className = 'hybrid-group-label';
-                label.textContent = 'GROUP ' + (g + 1);
+                const header = document.createElement('div');
+                header.className = 'group-card-header';
+                header.innerHTML = `<span class="gc-title">GROUP ${g + 1}</span><span class="gc-count" id="gc-count-${g}">0名</span>`;
 
-                const dropZone = document.createElement('div');
-                dropZone.className = 'hybrid-drop-zone';
-                dropZone.dataset.group = g;
+                const body = document.createElement('div');
+                body.className = 'group-card-body';
+                body.dataset.group = g;
 
-                row.appendChild(label);
-                row.appendChild(dropZone);
-                area.appendChild(row);
+                card.appendChild(header);
+                card.appendChild(body);
+                grid.appendChild(card);
 
-                // SortableJSでドロップゾーンを作成
-                new Sortable(dropZone, {
-                    group: 'hybrid-members',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost'
+                // カードクリックで選択中メンバーを配置
+                card.addEventListener('click', (e) => {
+                    // メンバーチップ自体のクリックは別処理
+                    if (e.target.closest('.hm-chip')) return;
+                    if (selectedMember) {
+                        body.appendChild(selectedMember);
+                        deselectMember();
+                        updatePoolCounter();
+                        updateGroupCounts();
+                    }
                 });
             }
 
-            // 未配置プールに全メンバーを配置
-            const pool = document.getElementById('unassignedList');
+            // 未配置プールにメンバーを配置
+            const pool = document.getElementById('poolList');
             pool.innerHTML = '';
-
             members.forEach(m => {
-                const el = createHybridMemberEl(m);
-                pool.appendChild(el);
+                const chip = createChip(m);
+                pool.appendChild(chip);
             });
 
-            new Sortable(pool, {
-                group: 'hybrid-members',
-                animation: 150,
-                ghostClass: 'sortable-ghost'
-            });
-
-            // 確定ボタンの状態更新
+            updatePoolCounter();
+            updateGroupCounts();
             document.getElementById('confirmDayBtn').disabled = false;
         }
 
-        function createHybridMemberEl(member) {
+        function createChip(member) {
             const el = document.createElement('div');
             const isFemale = ['\u5973', 'F', 'FEMALE', 'WOMAN'].includes(String(member.gender).toUpperCase());
-            el.className = 'hybrid-member ' + (isFemale ? 'female' : 'male');
+            el.className = 'hm-chip ' + (isFemale ? 'female' : 'male');
             el.dataset.name = member.name;
             el.dataset.grade = member.grade;
             el.dataset.gender = member.gender;
-            el.dataset.tool = member.isTool ? 'true' : 'false';
+            el.dataset.tool = member.is_tool ? 'true' : 'false';
 
             let html = '';
-            if (member.isTool) html += '\ud83d\udd27 ';
+            if (member.is_tool) html += '\ud83d\udd27';
             html += member.name;
-            html += '<span class="grade-text">(' + member.grade + ')</span>';
+            html += '<span class="g-text">(' + member.grade + ')</span>';
             el.innerHTML = html;
+
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleChipClick(el);
+            });
+
             return el;
         }
 
-        function confirmCurrentDay() {
-            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
-            const dropZones = document.querySelectorAll('.hybrid-drop-zone');
-            const pool = document.getElementById('unassignedList');
+        function handleChipClick(chip) {
+            const isInPool = chip.parentElement.id === 'poolList';
+            const isInGroup = chip.parentElement.classList.contains('group-card-body');
 
-            // 未配置メンバーがいる場合は警告
+            if (isInGroup) {
+                // グループ内のメンバーをクリック → 未配置に戻す
+                document.getElementById('poolList').appendChild(chip);
+                deselectMember();
+                updatePoolCounter();
+                updateGroupCounts();
+                return;
+            }
+
+            if (isInPool) {
+                // プール内のメンバーをクリック → 選択/解除
+                if (selectedMember === chip) {
+                    deselectMember();
+                } else {
+                    deselectMember();
+                    selectedMember = chip;
+                    chip.classList.add('selected');
+                    // グループカードをハイライト
+                    document.querySelectorAll('.group-card').forEach(c => c.classList.add('target-highlight'));
+                }
+            }
+        }
+
+        function deselectMember() {
+            if (selectedMember) {
+                selectedMember.classList.remove('selected');
+            }
+            selectedMember = null;
+            document.querySelectorAll('.group-card').forEach(c => c.classList.remove('target-highlight'));
+        }
+
+        function updatePoolCounter() {
+            const pool = document.getElementById('poolList');
+            const count = pool.children.length;
+            document.getElementById('poolCounter').innerHTML = `残り: <b>${count}</b>名`;
+        }
+
+        function updateGroupCounts() {
+            document.querySelectorAll('.group-card-body').forEach(body => {
+                const g = body.dataset.group;
+                const countEl = document.getElementById('gc-count-' + g);
+                if (countEl) countEl.textContent = body.children.length + '名';
+            });
+        }
+
+        function confirmCurrentDay() {
+            const pool = document.getElementById('poolList');
             if (pool.children.length > 0) {
                 alert('全てのメンバーをグループに配置してください。\n未配置: ' + pool.children.length + '名');
                 return;
             }
 
-            // グループデータを収集
             const groups = [];
-            dropZones.forEach(zone => {
+            document.querySelectorAll('.group-card-body').forEach(body => {
                 const groupMembers = [];
-                Array.from(zone.children).forEach(el => {
+                Array.from(body.children).forEach(el => {
                     groupMembers.push({
                         name: el.dataset.name,
                         grade: el.dataset.grade,
@@ -1272,11 +1411,9 @@
                 groups.push(groupMembers);
             });
 
-            // 確定データを保存
             confirmedDays[hybridCurrentDay] = { day: hybridCurrentDay, groups: groups };
 
-            // タブを緑色に
-            document.querySelectorAll('.hybrid-day-tab').forEach(t => {
+            document.querySelectorAll('.hybrid-topbar-tab').forEach(t => {
                 if (parseInt(t.dataset.day) === hybridCurrentDay) {
                     t.classList.remove('active');
                     t.classList.add('done');
@@ -1286,22 +1423,17 @@
 
             updateHybridStatus();
 
-            // 次の未確定日を探す
             const numDays = parseInt(document.getElementById('numDaysInput').value);
             let nextDay = null;
             for (let d = 1; d <= numDays; d++) {
-                if (!confirmedDays[d]) {
-                    nextDay = d;
-                    break;
-                }
+                if (!confirmedDays[d]) { nextDay = d; break; }
             }
 
             if (nextDay) {
                 switchHybridDay(nextDay);
             } else {
-                // 全日程確定済み
                 document.getElementById('confirmDayBtn').disabled = true;
-                document.getElementById('hybridGroupsArea').innerHTML = '<div style="padding: 20px; text-align: center; color: #22c55e; font-weight: 600;">✅ 全ての日程が確定されました</div>';
+                document.getElementById('groupsGrid').innerHTML = '<div style="padding:40px; text-align:center; color:#22c55e; font-weight:700; font-size:1.1rem; grid-column:1/-1;">✅ 全ての日程が確定されました</div>';
             }
         }
 
@@ -1310,28 +1442,22 @@
             const confirmedCount = Object.keys(confirmedDays).length;
             const remaining = numDays - confirmedCount;
 
-            const statusEl = document.getElementById('hybridStatus');
-            statusEl.textContent = `確定: ${confirmedCount}日 / 全${numDays}日（残り${remaining}日は自動最適化）`;
+            document.getElementById('hybridStatus').textContent = `確定: ${confirmedCount}日 / 全${numDays}日`;
 
-            // 1日以上確定してかつ全部ではない場合に実行ボタンを有効化
             const submitBtn = document.getElementById('submitHybridBtn');
             submitBtn.disabled = confirmedCount === 0;
-
             if (confirmedCount === numDays) {
-                submitBtn.textContent = '🚀 全日程確定済みで実行';
+                submitBtn.textContent = '\ud83d\ude80 全日程確定済みで実行';
             } else {
                 submitBtn.textContent = `\ud83d\ude80 残り${remaining}日を自動最適化して実行`;
             }
         }
 
         function submitHybrid() {
-            // フォームにデータをセット
             document.getElementById('hidden-mode').value = 'hybrid';
             updateHiddenField();
-
             const manualDays = Object.values(confirmedDays);
             document.getElementById('hidden-manual-days').value = JSON.stringify(manualDays);
-
             form.submit();
         }
     </script>
