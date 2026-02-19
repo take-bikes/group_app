@@ -1489,17 +1489,13 @@
 
         function renderCouplesList() {
             const list = document.getElementById('couplesList');
-            const empty = document.getElementById('couplesEmpty');
             const count = document.getElementById('couplesCount');
+            list.innerHTML = '';
 
             if (couplesPairs.length === 0) {
-                list.innerHTML = '';
-                list.appendChild(empty);
-                empty.style.display = 'block';
                 count.textContent = '';
+                list.innerHTML = '<div class="couples-empty">ペアが登録されていません</div>';
             } else {
-                empty.style.display = 'none';
-                list.innerHTML = '';
                 count.textContent = `(${couplesPairs.length}組)`;
                 couplesPairs.forEach((c, i) => {
                     const item = document.createElement('div');
