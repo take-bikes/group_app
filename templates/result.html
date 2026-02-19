@@ -9,26 +9,254 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
-        body {
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: #f9fafb;
+        * {
+            box-sizing: border-box;
         }
 
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #1f2937;
+        }
+
+        /* ====== ページ全体レイアウト ====== */
+        .page-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ====== サイドバー ====== */
+        .sidebar {
+            width: 240px;
+            background: #1e293b;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .sidebar-header p {
+            margin: 6px 0 0;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+        }
+
+        .sidebar-nav-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            padding: 8px 10px 4px;
+            font-weight: 600;
+        }
+
+        .day-tab {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            margin: 4px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        .day-tab:hover {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .day-tab.active {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            border-color: transparent;
+        }
+
+        .day-tab .tab-icon {
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+
+        .day-tab .tab-label {
+            flex: 1;
+        }
+
+        .day-tab .dup-badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .day-tab.active .dup-badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        /* サイドバー下部アクション */
+        .sidebar-actions {
+            padding: 16px;
+            border-top: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-btn.back {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        .sidebar-btn.back:hover {
+            background: #64748b;
+        }
+
+        .sidebar-btn.save {
+            background: #22c55e;
+            color: white;
+        }
+
+        .sidebar-btn.save:hover {
+            background: #16a34a;
+        }
+
+        /* ====== メインコンテンツ ====== */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 30px 40px;
+        }
+
+        /* メッセージバナー */
+        .message-banner {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 12px 18px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            border: 1px solid #a7f3d0;
+            font-size: 0.9rem;
+        }
+
+        /* 日程パネル */
+        .day-panel {
+            display: none;
+        }
+
+        .day-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .day-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .day-panel-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .day-panel-header .info-pills {
+            display: flex;
+            gap: 8px;
+        }
+
+        .info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .info-pill i {
+            color: #9ca3af;
+        }
+
+        .info-pill b {
+            color: #111827;
+        }
+
+        /* カードデザイン */
         .card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: none;
-            margin-bottom: 24px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
             overflow: hidden;
-        }
-
-        .card header {
-            background-color: #fff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 15px 20px;
         }
 
         .card table.primary {
@@ -37,10 +265,17 @@
         }
 
         .card table.primary thead th {
-            background-color: #f3f4f6;
+            background-color: #f9fafb;
             color: #374151;
             font-weight: 600;
             border-bottom: 2px solid #e5e7eb;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+        }
+
+        .card table.primary tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         /* メンバーリストのレイアウト（ドロップ先エリア） */
@@ -119,11 +354,13 @@
             font-size: 0.7rem;
         }
 
-        .actions {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        /* グループ名 */
+        .group-name {
+            vertical-align: middle;
+            font-weight: 700;
+            color: #4b5563;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
 
         /* ====== ドラッグ＆ドロップ時のアニメーション ====== */
@@ -134,13 +371,11 @@
             border-radius: 4px;
         }
 
-        /* リスト自体にドラッグアイテムが乗った時のハイライト */
         .sortable-drag-over {
             background-color: #e0f2fe;
             border-color: #38bdf8;
         }
 
-        /* 重複が発生したときのアニメーション（赤く光る） */
         @keyframes pulse-duplicate {
             0% {
                 transform: scale(1);
@@ -171,88 +406,146 @@
             background-color: #ef4444 !important;
             transition: background-color 0.3s;
         }
+
+        /* ====== レスポンシブ ====== */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <h1 style="margin-top:0;">🎉 グループ分け結果</h1>
+    <div class="page-layout">
 
-    {% if message %}
-    <div
-        style="background-color: #d1fae5; color: #065f46; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #a7f3d0;">
-        {{ message }}
-    </div>
-    {% endif %}
+        <!-- ====== サイドバー ====== -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>🎉 グループ分け結果</h2>
+                <p>日程を選択して切り替え</p>
+            </div>
 
-    <div class="actions">
-        <a href="/" class="button" style="background-color: #6b7280; border-color: #6b7280;">
-            <i class="fas fa-arrow-left"></i> 戻る
-        </a>
-
-        <form action="/save_result" method="POST" style="margin:0;">
-            <input type="hidden" name="schedule_data" id="scheduleDataInput" value="{{ schedule_json }}">
-            <button type="submit" class="success">
-                <i class="fas fa-save"></i> データベースに記録
-            </button>
-        </form>
-    </div>
-
-    {% for day in schedule %}
-    <div class="card" data-day="{{ day.day }}">
-        <header>
-            <h3 style="margin:0; font-size: 1.2rem;">
-                {{ day.day }}日目
-                <span style="font-size:0.75em; color:#6b7280; font-weight: normal; margin-left: 10px;">
-                    <i class="fas fa-hand-pointer"></i> メンバーをドラッグして移動できます
-                </span>
-            </h3>
-        </header>
-        <table class="primary">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">グループ</th>
-                    <th>メンバー</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for group in day.groups %}
-                <tr>
-                    <td style="vertical-align: middle; font-weight: bold; color: #4b5563;">
-                        GROUP {{ loop.index }}
-                    </td>
-                    <td>
-                        <div class="members-list">
-                            {% for person in group %}
-                            {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN'] %}
-
-                            <div class="person-wrapper" data-name="{{ person.name }}" data-grade="{{ person.grade }}"
-                                data-gender="{{ person.gender }}"
-                                data-tool="{{ 'true' if person.is_tool else 'false' }}">
-
-                                {% if person.is_tool %}
-                                <span class="tool-badge"><i class="fas fa-wrench"></i> 工具係</span>
-                                {% endif %}
-
-                                <span class="label {{ 'female' if is_female else 'male' }}">
-                                    {{ person.name }}<span class="grade-text">({{ person.grade }})</span>
-                                </span>
-                            </div>
-
-                            {% endfor %}
-                        </div>
-                    </td>
-                </tr>
+            <div class="sidebar-nav">
+                <div class="sidebar-nav-label">日程一覧</div>
+                {% for day in schedule %}
+                <div class="day-tab {{ 'active' if loop.first else '' }}" data-target="day-{{ day.day }}"
+                    onclick="switchDay(this)">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-label">{{ day.day }}日目</span>
+                    <span class="dup-badge" title="重複ペア数">{{ day.details.duplicate_count }}重複</span>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+
+            <div class="sidebar-actions">
+                <a href="/" class="sidebar-btn back">
+                    <i class="fas fa-arrow-left"></i> 戻ってやり直す
+                </a>
+                <form action="/save_result" method="POST" style="margin:0;">
+                    <input type="hidden" name="schedule_data" id="scheduleDataInput" value="{{ schedule_json }}">
+                    <button type="submit" class="sidebar-btn save" style="width:100%;">
+                        <i class="fas fa-save"></i> データベースに記録
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- ====== メインコンテンツ ====== -->
+        <main class="main-content">
+
+            {% if message %}
+            <div class="message-banner">
+                <i class="fas fa-check-circle"></i> {{ message }}
+            </div>
+            {% endif %}
+
+            {% for day in schedule %}
+            <div class="day-panel {{ 'active' if loop.first else '' }}" id="day-{{ day.day }}">
+
+                <div class="day-panel-header">
+                    <h2>{{ day.day }}日目</h2>
+                    <div class="info-pills">
+                        <span class="info-pill">
+                            <i class="fas fa-hand-pointer"></i> ドラッグで移動可能
+                        </span>
+                        <span class="info-pill">
+                            <i class="fas fa-info-circle"></i> 重複: <b>{{ day.details.duplicate_count }}</b> 組
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card" data-day="{{ day.day }}">
+                    <table class="primary">
+                        <thead>
+                            <tr>
+                                <th style="width: 12%;">グループ</th>
+                                <th>メンバー</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in day.groups %}
+                            <tr>
+                                <td class="group-name">
+                                    GROUP {{ loop.index }}
+                                </td>
+                                <td>
+                                    <div class="members-list">
+                                        {% for person in group %}
+                                        {% set is_female = person.gender|string|upper in ['女', 'F', 'FEMALE', 'WOMAN']
+                                        %}
+
+                                        <div class="person-wrapper" data-name="{{ person.name }}"
+                                            data-grade="{{ person.grade }}" data-gender="{{ person.gender }}"
+                                            data-tool="{{ 'true' if person.is_tool else 'false' }}">
+
+                                            {% if person.is_tool %}
+                                            <span class="tool-badge"><i class="fas fa-wrench"></i> 工具係</span>
+                                            {% endif %}
+
+                                            <span class="label {{ 'female' if is_female else 'male' }}">
+                                                {{ person.name }}<span class="grade-text">({{ person.grade }})</span>
+                                            </span>
+                                        </div>
+
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+
+        </main>
     </div>
-    {% endfor %}
 
     <script>
+        // ====== タブ切り替え ======
+        function switchDay(tab) {
+            // 全タブの active を外す
+            document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+            // 全パネルの active を外す
+            document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+
+            // クリックされたタブを active にする
+            tab.classList.add('active');
+            // 対応するパネルを表示
+            const targetId = tab.dataset.target;
+            document.getElementById(targetId).classList.add('active');
+        }
+
+        // ====== ドラッグ＆ドロップ ======
         // バックエンドから渡されたDBの履歴 ( "名前A::名前B" : 過去の回数 )
         const dbHistory = JSON.parse('{{ db_history_json | safe }}');
 
-        // 名前をソートして一意のペアキーを作成する関数
         function getPairKey(name1, name2) {
             return [name1, name2].sort().join("::");
         }
@@ -263,15 +556,12 @@
                 const dayStr = card.dataset.day;
                 const listElements = card.querySelectorAll('.members-list');
 
-                // 各日のグループを Sortable 化 (同じ日の中でのみ移動可能にする)
                 listElements.forEach(list => {
                     new Sortable(list, {
-                        group: 'day-' + dayStr, // これにより同じ日のグループ間でだけドラッグ可能
+                        group: 'day-' + dayStr,
                         animation: 150,
                         ghostClass: 'sortable-ghost',
                         dragClass: 'sortable-drag-over',
-
-                        // ドロップ操作が完了したときに発火
                         onEnd: function (evt) {
                             handleDrop(evt);
                         }
@@ -280,37 +570,29 @@
             });
         });
 
-        // ドロップされたときの処理
         function handleDrop(evt) {
-            const item = evt.item;          // ドラッグされた要素
-            const toList = evt.to;          // ドロップ先のリスト
-            const fromList = evt.from;      // ドラッグ元のリスト
+            const item = evt.item;
+            const toList = evt.to;
+            const fromList = evt.from;
 
-            // 変更があればデータを再計算して保存用JSONを更新する
             updateScheduleData();
 
-            // 同じリスト内の移動でなければ重複チェックを行う
             if (toList !== fromList) {
                 checkDuplicates(item, toList);
             }
         }
 
-        // 動的重複チェック関数
         function checkDuplicates(droppedItem, toList) {
             const targetDay = parseInt(toList.closest('.card').dataset.day);
             const droppedName = droppedItem.dataset.name;
 
-            // 1. 直前の日(day-1)までのセッション履歴をDOMから構築
-            // (今日までのグループ分け状況を把握して、DB履歴に加算する)
             let currentHistory = Object.assign({}, dbHistory);
 
             document.querySelectorAll('.card').forEach(card => {
                 const day = parseInt(card.dataset.day);
                 if (day < targetDay) {
                     card.querySelectorAll('.members-list').forEach(groupList => {
-                        // グループ内のメンバー名の配列を作成
                         const members = Array.from(groupList.children).map(el => el.dataset.name);
-                        // グループ内の全ペアを履歴に追加
                         for (let i = 0; i < members.length; i++) {
                             for (let j = i + 1; j < members.length; j++) {
                                 const key = getPairKey(members[i], members[j]);
@@ -321,24 +603,20 @@
                 }
             });
 
-            // 2. ドロップ先のグループで重複を探す
             let hasDuplicate = false;
             Array.from(toList.children).forEach(otherItem => {
-                if (otherItem === droppedItem) return; // 自分自身はスキップ
+                if (otherItem === droppedItem) return;
 
                 const otherName = otherItem.dataset.name;
                 const key = getPairKey(droppedName, otherName);
 
-                // DB履歴、またはこれまでの日程で1回以上同じグループだった場合
                 if (currentHistory[key] && currentHistory[key] > 0) {
                     hasDuplicate = true;
-                    // アニメーション用のクラスを付与
                     otherItem.classList.add('flash-duplicate');
                     droppedItem.classList.add('flash-duplicate');
                 }
             });
 
-            // 3. アニメーションを1秒後に取り除く
             if (hasDuplicate) {
                 setTimeout(() => {
                     document.querySelectorAll('.flash-duplicate').forEach(el => {
@@ -348,7 +626,6 @@
             }
         }
 
-        // DOMの現在の状態を読み取って、Pythonに送る保存用JSONを再生成する
         function updateScheduleData() {
             const schedule = [];
 
@@ -358,7 +635,6 @@
 
                 card.querySelectorAll('tbody tr').forEach(tr => {
                     const groupMembers = [];
-                    // 移動後のメンバーリストを取得
                     tr.querySelectorAll('.person-wrapper').forEach(person => {
                         groupMembers.push({
                             name: person.dataset.name,
@@ -376,7 +652,6 @@
                 });
             });
 
-            // 隠しinput要素の値を更新（データベースに記録ボタンを押した時にこのデータが飛ぶ）
             document.getElementById('scheduleDataInput').value = JSON.stringify(schedule);
         }
     </script>
