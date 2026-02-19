@@ -1807,12 +1807,12 @@
                     // 恋人ブロック中のグループには配置できない
                     if (card.classList.contains('couple-blocked')) return;
                     if (selectedMember) {
-                        saveHybridState();
                         body.appendChild(selectedMember);
                         sortGroupBody(body);
                         deselectMember();
                         updatePoolCounter();
                         updateGroupCounts();
+                        saveHybridState();
                     }
                 });
             }
@@ -1874,13 +1874,13 @@
 
             if (isInGroup) {
                 // グループ内のメンバーをクリック → 未配置に戻す
-                saveHybridState();
                 const prevBody = chip.parentElement;
                 document.getElementById('poolList').appendChild(chip);
                 sortGroupBody(prevBody);
                 deselectMember();
                 updatePoolCounter();
                 updateGroupCounts();
+                saveHybridState();
                 return;
             }
 
