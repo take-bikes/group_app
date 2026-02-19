@@ -952,6 +952,22 @@
             padding: 8px;
         }
 
+        /* 恋人ブロック（ハイブリッドモード） */
+        .group-card.couple-blocked {
+            opacity: 0.4;
+            border-color: #f87171 !important;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .group-card.couple-blocked::after {
+            content: '💔';
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 1.1rem;
+        }
+
         /* ====== ローディング画面 ====== */
         .loading-overlay {
             display: none;
@@ -1766,6 +1782,8 @@
                 card.addEventListener('click', (e) => {
                     // メンバーチップ自体のクリックは別処理
                     if (e.target.closest('.hm-chip')) return;
+                    // 恋人ブロック中のグループには配置できない
+                    if (card.classList.contains('couple-blocked')) return;
                     if (selectedMember) {
                         body.appendChild(selectedMember);
                         deselectMember();
@@ -1811,6 +1829,16 @@
             return el;
         }
 
+        // 恋人ペアから指定メンバーのパートナー名一覧を取得
+        function getPartnerNames(memberName) {
+            const partners = [];
+            couplesPairs.forEach(c => {
+                if (c.name1 === memberName) partners.push(c.name2);
+                if (c.name2 === memberName) partners.push(c.name1);
+            });
+            return partners;
+        }
+
         function handleChipClick(chip) {
             const isInPool = chip.parentElement.id === 'poolList';
             const isInGroup = chip.parentElement.classList.contains('group-card-body');
@@ -1832,8 +1860,19 @@
                     deselectMember();
                     selectedMember = chip;
                     chip.classList.add('selected');
-                    // グループカードをハイライト
-                    document.querySelectorAll('.group-card').forEach(c => c.classList.add('target-highlight'));
+
+                    // 恋人がいるグループを特定してブロック
+                    const partners = getPartnerNames(chip.dataset.name);
+                    document.querySelectorAll('.group-card').forEach(card => {
+                        const body = card.querySelector('.group-card-body');
+                        const namesInGroup = Array.from(body.children).map(c => c.dataset.name);
+                        const hasPartner = partners.some(p => namesInGroup.includes(p));
+                        if (hasPartner) {
+                            card.classList.add('couple-blocked');
+                        } else {
+                            card.classList.add('target-highlight');
+                        }
+                    });
                 }
             }
         }
@@ -1843,7 +1882,10 @@
                 selectedMember.classList.remove('selected');
             }
             selectedMember = null;
-            document.querySelectorAll('.group-card').forEach(c => c.classList.remove('target-highlight'));
+            document.querySelectorAll('.group-card').forEach(c => {
+                c.classList.remove('target-highlight');
+                c.classList.remove('couple-blocked');
+            });
         }
 
         function updatePoolCounter() {
