@@ -371,34 +371,19 @@
             border-color: #38bdf8;
         }
 
-        @keyframes pulse-duplicate {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
-                z-index: 10;
-            }
-
-            50% {
-                transform: scale(1.15);
-                box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
-                z-index: 10;
-            }
-
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-                z-index: 1;
-            }
+        /* 重複ペアの常時表示エフェクト */
+        .duplicate-marker .label {
+            border-bottom: 2.5px solid #ef4444;
+            box-shadow: 0 2px 0 #ef4444;
         }
 
-        .flash-duplicate {
-            animation: pulse-duplicate 0.8s cubic-bezier(0.4, 0, 0.6, 1);
-            border-radius: 4px;
-        }
-
-        .flash-duplicate .label {
-            background-color: #ef4444 !important;
-            transition: background-color 0.3s;
+        .duplicate-marker::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.08);
+            pointer-events: none;
         }
 
         /* ====== レスポンシブ ====== */
@@ -570,54 +555,51 @@
 
             updateScheduleData();
             updateDuplicateCounts();
-
-            if (toList !== fromList) {
-                checkDuplicates(item, toList);
-            }
+            refreshAllDuplicateMarkers();
         }
 
-        function checkDuplicates(droppedItem, toList) {
-            const targetDay = parseInt(toList.closest('.card').dataset.day);
-            const droppedName = droppedItem.dataset.name;
+        // 全日程の重複マーカーを再計算して付け直す
+        function refreshAllDuplicateMarkers() {
+            // まず全マーカーをクリア
+            document.querySelectorAll('.duplicate-marker').forEach(el => {
+                el.classList.remove('duplicate-marker');
+            });
 
-            let currentHistory = Object.assign({}, dbHistory);
-
+            // 各日程ごとに重複を判定
             document.querySelectorAll('.card').forEach(card => {
-                const day = parseInt(card.dataset.day);
-                if (day < targetDay) {
-                    card.querySelectorAll('.members-list').forEach(groupList => {
-                        const members = Array.from(groupList.children).map(el => el.dataset.name);
-                        for (let i = 0; i < members.length; i++) {
-                            for (let j = i + 1; j < members.length; j++) {
-                                const key = getPairKey(members[i], members[j]);
-                                currentHistory[key] = (currentHistory[key] || 0) + 1;
+                const dayNum = parseInt(card.dataset.day);
+
+                // この日までの履歴を構築
+                let history = Object.assign({}, dbHistory);
+                document.querySelectorAll('.card').forEach(prevCard => {
+                    const prevDay = parseInt(prevCard.dataset.day);
+                    if (prevDay < dayNum) {
+                        prevCard.querySelectorAll('.members-list').forEach(groupList => {
+                            const members = Array.from(groupList.children).map(el => el.dataset.name);
+                            for (let i = 0; i < members.length; i++) {
+                                for (let j = i + 1; j < members.length; j++) {
+                                    const key = getPairKey(members[i], members[j]);
+                                    history[key] = (history[key] || 0) + 1;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // グループ内の重複ペアにマーカーを付与
+                card.querySelectorAll('.members-list').forEach(groupList => {
+                    const items = Array.from(groupList.children);
+                    for (let i = 0; i < items.length; i++) {
+                        for (let j = i + 1; j < items.length; j++) {
+                            const key = getPairKey(items[i].dataset.name, items[j].dataset.name);
+                            if (history[key] && history[key] > 0) {
+                                items[i].classList.add('duplicate-marker');
+                                items[j].classList.add('duplicate-marker');
                             }
                         }
-                    });
-                }
+                    }
+                });
             });
-
-            let hasDuplicate = false;
-            Array.from(toList.children).forEach(otherItem => {
-                if (otherItem === droppedItem) return;
-
-                const otherName = otherItem.dataset.name;
-                const key = getPairKey(droppedName, otherName);
-
-                if (currentHistory[key] && currentHistory[key] > 0) {
-                    hasDuplicate = true;
-                    otherItem.classList.add('flash-duplicate');
-                    droppedItem.classList.add('flash-duplicate');
-                }
-            });
-
-            if (hasDuplicate) {
-                setTimeout(() => {
-                    document.querySelectorAll('.flash-duplicate').forEach(el => {
-                        el.classList.remove('flash-duplicate');
-                    });
-                }, 1000);
-            }
         }
 
         function updateScheduleData() {
