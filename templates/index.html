@@ -951,7 +951,14 @@
                 <div class="tool-toggle ${member.is_tool ? 'active' : ''}" onclick="toggleTool(${index})" title="工具係">🔧</div>
             </div>
             <div class="card-row">
-                <input type="text" placeholder="学年" value="${member.grade}" style="flex:1" oninput="updateMember(${index}, 'grade', this.value)">
+                <select style="flex:1" onchange="updateMember(${index}, 'grade', this.value)">
+                    <option value="1" ${member.grade === '1' ? 'selected' : ''}>1年</option>
+                    <option value="2" ${member.grade === '2' ? 'selected' : ''}>2年</option>
+                    <option value="3" ${member.grade === '3' ? 'selected' : ''}>3年</option>
+                    <option value="4" ${member.grade === '4' ? 'selected' : ''}>4年</option>
+                    <option value="M1" ${member.grade === 'M1' ? 'selected' : ''}>M1</option>
+                    <option value="M2" ${member.grade === 'M2' ? 'selected' : ''}>M2</option>
+                </select>
                 <div class="gender-toggle" style="flex:1">
                     <div class="gender-option ${member.gender === 'M' ? 'selected' : ''}" 
                          data-value="M" onclick="updateGender(${index}, 'M')">男</div>
@@ -987,7 +994,7 @@
         };
 
         window.addMember = () => {
-            members.push({ name: '', grade: '', gender: 'M', is_tool: false });
+            members.push({ name: '', grade: '1', gender: 'M', is_tool: false });
             render();
         };
 
@@ -1048,7 +1055,7 @@
         if (members.length === 0) {
             members = [
                 { name: '田中一郎', grade: '1', gender: 'M', is_tool: true },
-                { name: '佐藤花子', grade: '2', gender: 'F', is_tool: false }
+                { name: '佐藤花子', grade: 'M1', gender: 'F', is_tool: false }
             ];
             render();
         }

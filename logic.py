@@ -320,11 +320,17 @@ class GroupOptimizer:
         return schedule
 
     def _format_groups(self, groups):
-        """グループを学年降順でソートして表示用に整形する"""
+        """グループを学年降順でソートして表示用に整形する（M2 > M1 > 4 > 3 > 2 > 1）"""
+        # 学年→ソート用数値のマッピング
+        grade_order = {'M2': 6, 'M1': 5, '4': 4, '3': 3, '2': 2, '1': 1}
+
         display_groups = []
         for g in groups:
             def get_grade_num(p):
-                s = str(p['grade']).strip()
+                s = str(p['grade']).strip().upper()
+                if s in grade_order:
+                    return grade_order[s]
+                # マッピングにない場合は数字を抽出
                 nums = "".join(filter(str.isdigit, s))
                 if nums:
                     return int(nums)
