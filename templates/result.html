@@ -431,7 +431,8 @@
                     onclick="switchDay(this)">
                     <span class="tab-icon">📅</span>
                     <span class="tab-label">{{ day.day }}日目</span>
-                    <span class="dup-badge" title="重複ペア数">{{ day.details.duplicate_count }}重複</span>
+                    <span class="dup-badge" id="dup-badge-{{ day.day }}" title="重複ペア数">{{ day.details.duplicate_count
+                        }}重複</span>
                 </div>
                 {% endfor %}
             </div>
@@ -466,7 +467,8 @@
                             <i class="fas fa-hand-pointer"></i> ドラッグで移動可能
                         </span>
                         <span class="info-pill">
-                            <i class="fas fa-info-circle"></i> 重複: <b>{{ day.details.duplicate_count }}</b> 組
+                            <i class="fas fa-info-circle"></i> 重複: <b id="dup-pill-{{ day.day }}">{{
+                                day.details.duplicate_count }}</b> 組
                         </span>
                     </div>
                 </div>
@@ -567,6 +569,7 @@
             const fromList = evt.from;
 
             updateScheduleData();
+            updateDuplicateCounts();
 
             if (toList !== fromList) {
                 checkDuplicates(item, toList);
@@ -644,6 +647,52 @@
             });
 
             document.getElementById('scheduleDataInput').value = JSON.stringify(schedule);
+        }
+
+        // ====== 重複カウント再計算 ======
+        function updateDuplicateCounts() {
+            document.querySelectorAll('.card').forEach(card => {
+                const dayNum = parseInt(card.dataset.day);
+
+                // この日までの履歴を構築（DB + 前日までのセッション内ペア）
+                let history = Object.assign({}, dbHistory);
+                document.querySelectorAll('.card').forEach(prevCard => {
+                    const prevDay = parseInt(prevCard.dataset.day);
+                    if (prevDay < dayNum) {
+                        prevCard.querySelectorAll('.members-list').forEach(groupList => {
+                            const members = Array.from(groupList.children).map(el => el.dataset.name);
+                            for (let i = 0; i < members.length; i++) {
+                                for (let j = i + 1; j < members.length; j++) {
+                                    const key = getPairKey(members[i], members[j]);
+                                    history[key] = (history[key] || 0) + 1;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // この日のグループ内で重複しているペアを数える
+                let dupCount = 0;
+                card.querySelectorAll('.members-list').forEach(groupList => {
+                    const members = Array.from(groupList.children).map(el => el.dataset.name);
+                    for (let i = 0; i < members.length; i++) {
+                        for (let j = i + 1; j < members.length; j++) {
+                            const key = getPairKey(members[i], members[j]);
+                            if (history[key] && history[key] > 0) {
+                                dupCount++;
+                            }
+                        }
+                    }
+                });
+
+                // サイドバーのバッジを更新
+                const badge = document.getElementById('dup-badge-' + dayNum);
+                if (badge) badge.textContent = dupCount + '重複';
+
+                // メインパネルのinfo-pillを更新
+                const pill = document.getElementById('dup-pill-' + dayNum);
+                if (pill) pill.textContent = dupCount;
+            });
         }
     </script>
 </body>
