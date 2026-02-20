@@ -115,6 +115,33 @@
             user-select: none;
         }
 
+        .grid-col-header.sortable {
+            cursor: pointer;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .grid-col-header.sortable:hover {
+            color: #4f46e5;
+            background: rgba(79, 70, 229, 0.04);
+        }
+
+        .sort-icon {
+            display: inline-flex;
+            align-items: center;
+            font-size: 10px;
+            color: #c0c5ce;
+            transition: color 0.15s;
+            margin-left: 2px;
+        }
+
+        .grid-col-header.sortable:hover .sort-icon {
+            color: #8b8ff5;
+        }
+
+        .sort-icon.active {
+            color: #4f46e5;
+        }
+
         .grid-col-header:last-child {
             border-right: none;
         }
@@ -472,59 +499,6 @@
             max-height: 170px;
             overflow: hidden;
             cursor: pointer;
-        }
-
-        .stack-fade-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 70%, white 100%);
-            pointer-events: none;
-            z-index: 10;
-            border-radius: 0 0 10px 10px;
-            transition: opacity 0.3s;
-        }
-
-        .stack-peek-badge {
-            position: absolute;
-            right: 16px;
-            bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 20;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .stack-peek-badge .peek-count {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--primary);
-            background: #eef2ff;
-            border: 1px solid #c7d2fe;
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        .stack-peek-badge .peek-arrow {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .stack-container:not(.open):hover .peek-arrow {
-            background: var(--primary);
-            color: white;
         }
 
         /* 出欠バッジ */
@@ -1425,12 +1399,12 @@
                 <div class="grid-header" id="headerGrid">
                     <div class="row-handle">#</div>
                     <div class="grid-col-header" style="width:160px;">氏名</div>
-                    <div class="grid-col-header" style="width:90px; cursor:pointer;" onclick="sortMembers('grade')">学年
-                        <span id="sort-grade" style="margin-left:4px; font-size:10px;"></span></div>
-                    <div class="grid-col-header" style="width:80px; cursor:pointer;" onclick="sortMembers('gender')">性別
-                        <span id="sort-gender" style="margin-left:4px; font-size:10px;"></span></div>
-                    <div class="grid-col-header" style="width:70px; cursor:pointer;" onclick="sortMembers('is_tool')">
-                        工具係 <span id="sort-is_tool" style="margin-left:4px; font-size:10px;"></span></div>
+                    <div class="grid-col-header sortable" style="width:90px;" onclick="sortMembers('grade')">学年<span
+                            class="sort-icon" id="sort-grade">⇅</span></div>
+                    <div class="grid-col-header sortable" style="width:80px;" onclick="sortMembers('gender')">性別<span
+                            class="sort-icon" id="sort-gender">⇅</span></div>
+                    <div class="grid-col-header sortable" style="width:70px;" onclick="sortMembers('is_tool')">工具係<span
+                            class="sort-icon" id="sort-is_tool">⇅</span></div>
                     <div class="grid-col-header" style="flex:1;">出欠</div>
                     <div class="grid-col-header" style="width:36px; padding:0;"></div>
                 </div>
@@ -1439,12 +1413,6 @@
                     <div class="row-handle" style="background:transparent;">+</div>
                     <div class="ghost-label">クリックして新しく追加...</div>
                 </div>
-            </div>
-            <!-- 折りたたみ時のフェード + バッジ -->
-            <div class="stack-fade-overlay" id="stackFade" style="display:none;"></div>
-            <div class="stack-peek-badge" id="stackPeekBadge" style="display:none;">
-                <span class="peek-count" id="peekCountText">他 0 名</span>
-                <span class="peek-arrow">▼</span>
             </div>
         </div>
 
@@ -1727,7 +1695,14 @@
                 currentSort.asc = true;
             }
             ['grade', 'gender', 'is_tool'].forEach(k => {
-                document.getElementById('sort-' + k).textContent = (k === currentSort.key) ? (currentSort.asc ? '▲' : '▼') : '';
+                const icon = document.getElementById('sort-' + k);
+                if (k === currentSort.key) {
+                    icon.textContent = currentSort.asc ? '▲' : '▼';
+                    icon.classList.add('active');
+                } else {
+                    icon.textContent = '⇅';
+                    icon.classList.remove('active');
+                }
             });
             members.sort((a, b) => {
                 let va = a[key], vb = b[key];
@@ -1771,8 +1746,6 @@
         function updateStackUI() {
             const header = document.getElementById('stackHeader');
             const container = document.getElementById('stackContainer');
-            const badge = document.getElementById('stackPeekBadge');
-            const fade = document.getElementById('stackFade');
             const btn = document.getElementById('stackToggleBtn');
 
             if (members.length === 0) {
@@ -1787,23 +1760,12 @@
 
             if (isStackOpen) {
                 container.classList.add('open');
-                badge.style.display = 'none';
-                fade.style.display = 'none';
                 btn.classList.add('open');
                 btn.querySelector('.label').textContent = '折りたたむ';
             } else {
                 container.classList.remove('open');
                 btn.classList.remove('open');
                 btn.querySelector('.label').textContent = '展開する';
-
-                if (members.length > 3) {
-                    fade.style.display = 'block';
-                    badge.style.display = 'flex';
-                    document.getElementById('peekCountText').textContent = `他 ${members.length - 2} 名`;
-                } else {
-                    fade.style.display = 'none';
-                    badge.style.display = 'none';
-                }
             }
         }
 
