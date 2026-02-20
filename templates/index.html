@@ -82,31 +82,297 @@
             color: var(--text-sub);
         }
 
-        /* Member List (Grid) */
-        .member-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
+        /* ====== データグリッド ====== */
+        .grid-wrapper {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
         }
 
-        .member-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid transparent;
+        .grid-header {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            background: #F9F9F8;
+        }
+
+        .grid-col-header {
+            padding: 9px 12px;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        .grid-col-header:last-child {
+            border-right: none;
+        }
+
+        .grid-body {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
         }
 
-        .member-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            border-color: var(--primary);
+        .grid-row {
+            display: flex;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.1s;
+        }
+
+        .grid-row:last-child {
+            border-bottom: none;
+        }
+
+        .grid-row:hover {
+            background: #fafbfc;
+        }
+
+        .row-handle {
+            width: 36px;
+            min-width: 36px;
+            border-right: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #9ca3af;
+            background: rgba(249, 250, 251, 0.3);
+            user-select: none;
+        }
+
+        .grid-header .row-handle {
+            border-right: 1px solid #e5e7eb;
+            background: transparent;
+        }
+
+        .grid-cell {
+            border-right: 1px solid #f3f4f6;
+            position: relative;
+            min-height: 40px;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .grid-cell:last-child {
+            border-right: none;
+        }
+
+        .cell-display {
+            width: 100%;
+            height: 100%;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.1s;
+            min-height: 40px;
+        }
+
+        .cell-display:hover {
+            background: rgba(249, 250, 251, 0.5);
+        }
+
+        .cell-text {
+            font-size: 13px;
+            color: #374151;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cell-text.empty {
+            color: transparent;
+            transition: color 0.15s;
+        }
+
+        .grid-row:hover .cell-text.empty {
+            color: #d1d5db;
+        }
+
+        /* Inline Editor */
+        .cell-editor {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .cell-editor input {
+            width: 100%;
+            height: 100%;
+            padding: 6px 10px;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-family: inherit;
+            color: #1f2937;
+            background: transparent;
+        }
+
+        /* Select Dropdown */
+        .select-editor {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            outline: none;
+        }
+
+        .select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: -2px;
+            min-width: 110px;
+            width: max-content;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+            padding: 4px 0;
+            z-index: 50;
+        }
+
+        .select-option {
+            padding: 7px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.1s;
+            font-size: 13px;
+        }
+
+        .select-option:hover {
+            background: #f9fafb;
+        }
+
+        /* Pill Badges */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 9px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            line-height: 1.6;
+        }
+
+        .pill-1,
+        .pill-1年 {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+
+        .pill-2,
+        .pill-2年 {
+            background: #d1fae5;
+            color: #065f46;
+            border-color: #a7f3d0;
+        }
+
+        .pill-3,
+        .pill-3年 {
+            background: #ede9fe;
+            color: #5b21b6;
+            border-color: #ddd6fe;
+        }
+
+        .pill-4,
+        .pill-4年 {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        .pill-M1 {
+            background: #fce7f3;
+            color: #9d174d;
+            border-color: #fbcfe8;
+        }
+
+        .pill-M2 {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .pill-M,
+        .pill-男 {
+            background: #cffafe;
+            color: #155e75;
+            border-color: #a5f3fc;
+        }
+
+        .pill-F,
+        .pill-女 {
+            background: #fce7f3;
+            color: #9d174d;
+            border-color: #fbcfe8;
+        }
+
+        .pill-tool {
+            background: #ffedd5;
+            color: #9a3412;
+            border-color: #fed7aa;
+        }
+
+        /* Delete button in row */
+        .row-delete-btn {
+            width: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: transparent;
+            transition: color 0.15s;
+            font-size: 14px;
+        }
+
+        .grid-row:hover .row-delete-btn {
+            color: #d1d5db;
+        }
+
+        .row-delete-btn:hover {
+            color: #ef4444 !important;
+        }
+
+        /* Ghost Row */
+        .ghost-row {
+            display: flex;
+            border-top: 1px solid #f3f4f6;
+            background: rgba(249, 250, 251, 0.3);
+            cursor: pointer;
+            color: #9ca3af;
+            transition: background 0.15s;
+        }
+
+        .ghost-row:hover {
+            background: rgba(243, 244, 246, 0.5);
+        }
+
+        .ghost-row .ghost-label {
+            padding: 9px 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         /* ====== スタックヘッダー ====== */
@@ -188,7 +454,6 @@
         /* ====== スタックコンテナ ====== */
         .stack-container {
             position: relative;
-            cursor: pointer;
             margin-bottom: 30px;
         }
 
@@ -196,35 +461,34 @@
             cursor: default;
         }
 
-        /* 折りたたみ時のスタック表示 */
-        .stack-container:not(.open) .member-grid {
-            display: block;
-            position: relative;
-            padding-top: 0;
+        /* 折りたたみ時: テーブルの高さ制限 + グラデーション */
+        .stack-container:not(.open) .grid-wrapper {
+            max-height: 170px;
+            overflow: hidden;
+            cursor: pointer;
         }
 
-        .stack-container:not(.open) .member-card {
+        .stack-fade-overlay {
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
-            width: 100%;
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 70%, white 100%);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 0 0 10px 10px;
+            transition: opacity 0.3s;
         }
 
-        .stack-container:not(.open) .member-card:hover {
-            transform: none;
-        }
-
-        /* 折りたたみ時のバッジ */
         .stack-peek-badge {
             position: absolute;
             right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
-            z-index: 999;
+            z-index: 20;
             pointer-events: none;
             transition: opacity 0.3s;
         }
@@ -252,124 +516,25 @@
             transition: all 0.2s;
         }
 
-        .stack-container:hover .peek-arrow {
+        .stack-container:not(.open):hover .peek-arrow {
             background: var(--primary);
             color: white;
-        }
-
-        /* 展開時の3Dパースペクティブ */
-        .stack-container.open .member-grid {
-            perspective: 1200px;
-        }
-
-        /* FLIPアニメーション中のカード */
-        .member-card.flip-animating {
-            will-change: transform, opacity;
-        }
-
-        .card-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"],
-        select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus,
-        select:focus {
-            border-color: var(--primary);
-        }
-
-        /* Gender Toggle */
-        .gender-toggle {
-            display: flex;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        .gender-option {
-            flex: 1;
-            text-align: center;
-            padding: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .gender-option.selected[data-value="M"] {
-            background-color: var(--male-color);
-            color: var(--male-text);
-            font-weight: bold;
-        }
-
-        .gender-option.selected[data-value="F"] {
-            background-color: var(--female-color);
-            color: var(--female-text);
-            font-weight: bold;
-        }
-
-        .remove-btn {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .member-card:hover .remove-btn {
-            opacity: 1;
-        }
-
-        /* Tool Toggle */
-        .tool-toggle {
-            cursor: pointer;
-            filter: grayscale(100%);
-            opacity: 0.3;
-            transition: all 0.2s;
-            font-size: 1.2rem;
-            user-select: none;
-        }
-
-        .tool-toggle.active {
-            filter: grayscale(0%);
-            opacity: 1;
-            transform: scale(1.1);
         }
 
         /* 出欠バッジ */
         .attendance-row {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             flex-wrap: wrap;
-            margin-top: 4px;
         }
 
         .att-badge {
             display: inline-flex;
             align-items: center;
             gap: 2px;
-            padding: 2px 6px;
+            padding: 1px 5px;
             border-radius: 4px;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
             cursor: pointer;
             user-select: none;
@@ -400,6 +565,18 @@
             background: #dcfce7;
             color: #166534;
             border-color: #bbf7d0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-wrapper {
+                overflow-x: auto;
+            }
+
+            .grid-header,
+            .grid-row,
+            .ghost-row {
+                min-width: 650px;
+            }
         }
 
         /* Controls */
@@ -1238,8 +1415,24 @@
 
         <!-- スタックコンテナ -->
         <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
-            <div id="memberGrid" class="member-grid"></div>
-            <!-- 折りたたみ時のバッジ（JSで政御） -->
+            <div class="grid-wrapper" id="gridWrapper">
+                <div class="grid-header">
+                    <div class="row-handle">#</div>
+                    <div class="grid-col-header" style="width:160px;">氏名</div>
+                    <div class="grid-col-header" style="width:90px;">学年</div>
+                    <div class="grid-col-header" style="width:80px;">性別</div>
+                    <div class="grid-col-header" style="width:70px;">工具係</div>
+                    <div class="grid-col-header" style="flex:1;">出欠</div>
+                    <div class="grid-col-header" style="width:36px; padding:0;"></div>
+                </div>
+                <div class="grid-body" id="memberGrid"></div>
+                <div class="ghost-row" onclick="addMember()">
+                    <div class="row-handle" style="background:transparent;">+</div>
+                    <div class="ghost-label">クリックして新しく追加...</div>
+                </div>
+            </div>
+            <!-- 折りたたみ時のフェード + バッジ -->
+            <div class="stack-fade-overlay" id="stackFade" style="display:none;"></div>
             <div class="stack-peek-badge" id="stackPeekBadge" style="display:none;">
                 <span class="peek-count" id="peekCountText">他 0 名</span>
                 <span class="peek-arrow">▼</span>
@@ -1403,47 +1596,110 @@
             if (member.attendance.length > numDays) member.attendance.length = numDays;
         }
 
-        function createCard(member, index) {
+        // 編集中のセル
+        let editingCell = null; // { rowIndex, colKey }
+
+        function escapeHTML(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function pillHTML(value, cls) {
+            return `<span class="pill pill-${cls}">${escapeHTML(value)}</span>`;
+        }
+
+        const GRADE_MAP = { '1': '1年', '2': '2年', '3': '3年', '4': '4年', 'M1': 'M1', 'M2': 'M2' };
+        const GRADE_OPTIONS = ['1', '2', '3', '4', 'M1', 'M2'];
+        const GENDER_MAP = { 'M': '男', 'F': '女' };
+        const GENDER_OPTIONS = ['M', 'F'];
+
+        function createRow(member, index) {
             ensureAttendance(member);
             const numDays = getNumDays();
-            const div = document.createElement('div');
-            div.className = 'member-card';
+            const row = document.createElement('div');
+            row.className = 'grid-row';
 
-            // 出欠バッジHTMLを生成
-            let attHtml = '<div class="attendance-row">';
+            // Row handle
+            const handle = document.createElement('div');
+            handle.className = 'row-handle';
+            handle.textContent = index + 1;
+            row.appendChild(handle);
+
+            // 氏名セル
+            const nameCell = document.createElement('div');
+            nameCell.className = 'grid-cell';
+            nameCell.style.width = '160px';
+            const isEditingName = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'name';
+            if (isEditingName) {
+                nameCell.innerHTML = `<div class="cell-editor"><input type="text" value="${escapeHTML(member.name || '')}" placeholder="名前を入力" data-row="${index}" data-col="name"></div>`;
+            } else {
+                nameCell.innerHTML = `<div class="cell-display" data-row="${index}" data-col="name"><span class="cell-text ${!member.name ? 'empty' : ''}">${escapeHTML(member.name || '空')}</span></div>`;
+            }
+            row.appendChild(nameCell);
+
+            // 学年セル
+            const gradeCell = document.createElement('div');
+            gradeCell.className = 'grid-cell';
+            gradeCell.style.width = '90px';
+            const isEditingGrade = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'grade';
+            if (isEditingGrade) {
+                let opts = GRADE_OPTIONS.map(g =>
+                    `<div class="select-option" data-value="${g}" data-row="${index}" data-col="grade">${pillHTML(GRADE_MAP[g], g)}</div>`
+                ).join('');
+                gradeCell.innerHTML = `<div class="select-editor" tabindex="0" data-row="${index}" data-col="grade">${member.grade ? pillHTML(GRADE_MAP[member.grade] || member.grade, member.grade) : '<span style="color:#9ca3af;font-size:13px;">選択</span>'}<div class="select-dropdown">${opts}</div></div>`;
+            } else {
+                const gLabel = GRADE_MAP[member.grade] || member.grade || '';
+                gradeCell.innerHTML = `<div class="cell-display" data-row="${index}" data-col="grade">${gLabel ? pillHTML(gLabel, member.grade) : '<span class="cell-text empty">空</span>'}</div>`;
+            }
+            row.appendChild(gradeCell);
+
+            // 性別セル
+            const genderCell = document.createElement('div');
+            genderCell.className = 'grid-cell';
+            genderCell.style.width = '80px';
+            const isEditingGender = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'gender';
+            if (isEditingGender) {
+                let opts = GENDER_OPTIONS.map(g =>
+                    `<div class="select-option" data-value="${g}" data-row="${index}" data-col="gender">${pillHTML(GENDER_MAP[g], g)}</div>`
+                ).join('');
+                genderCell.innerHTML = `<div class="select-editor" tabindex="0" data-row="${index}" data-col="gender">${member.gender ? pillHTML(GENDER_MAP[member.gender], member.gender) : '<span style="color:#9ca3af;font-size:13px;">選択</span>'}<div class="select-dropdown">${opts}</div></div>`;
+            } else {
+                const gLabel = GENDER_MAP[member.gender] || '';
+                genderCell.innerHTML = `<div class="cell-display" data-row="${index}" data-col="gender">${gLabel ? pillHTML(gLabel, member.gender) : '<span class="cell-text empty">空</span>'}</div>`;
+            }
+            row.appendChild(genderCell);
+
+            // 工具係セル
+            const toolCell = document.createElement('div');
+            toolCell.className = 'grid-cell';
+            toolCell.style.width = '70px';
+            toolCell.innerHTML = `<div class="cell-display" style="justify-content:center; cursor:pointer;" onclick="toggleTool(${index})">${member.is_tool ? pillHTML('🔧', 'tool') : '<span class="cell-text empty" style="font-size:12px;">―</span>'}</div>`;
+            row.appendChild(toolCell);
+
+            // 出欠セル
+            const attCell = document.createElement('div');
+            attCell.className = 'grid-cell';
+            attCell.style.flex = '1';
+            let attHtml = '<div class="cell-display"><div class="attendance-row">';
             for (let d = 0; d < numDays; d++) {
                 const present = member.attendance[d];
                 const cls = present ? 'present' : 'absent';
                 const icon = present ? '○' : '✕';
-                attHtml += `<div class="att-badge ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目の出欠">${d + 1}: ${icon}</div>`;
+                attHtml += `<div class="att-badge ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目">${d + 1}:${icon}</div>`;
             }
-            attHtml += '</div>';
+            attHtml += '</div></div>';
+            attCell.innerHTML = attHtml;
+            row.appendChild(attCell);
 
-            div.innerHTML = `
-            <div class="remove-btn" onclick="removeMember(${index})">×</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <input type="text" placeholder="名前" value="${member.name}" style="flex:1; margin-right:5px;" oninput="updateMember(${index}, 'name', this.value)">
-                <div class="tool-toggle ${member.is_tool ? 'active' : ''}" onclick="toggleTool(${index})" title="工具係">🔧</div>
-            </div>
-            <div class="card-row">
-                <select style="flex:1" onchange="updateMember(${index}, 'grade', this.value)">
-                    <option value="1" ${member.grade === '1' ? 'selected' : ''}>1年</option>
-                    <option value="2" ${member.grade === '2' ? 'selected' : ''}>2年</option>
-                    <option value="3" ${member.grade === '3' ? 'selected' : ''}>3年</option>
-                    <option value="4" ${member.grade === '4' ? 'selected' : ''}>4年</option>
-                    <option value="M1" ${member.grade === 'M1' ? 'selected' : ''}>M1</option>
-                    <option value="M2" ${member.grade === 'M2' ? 'selected' : ''}>M2</option>
-                </select>
-                <div class="gender-toggle" style="flex:1">
-                    <div class="gender-option ${member.gender === 'M' ? 'selected' : ''}" 
-                         data-value="M" onclick="updateGender(${index}, 'M')">男</div>
-                    <div class="gender-option ${member.gender === 'F' ? 'selected' : ''}" 
-                         data-value="F" onclick="updateGender(${index}, 'F')">女</div>
-                </div>
-            </div>
-            ${attHtml}
-        `;
-            return div;
+            // 削除ボタン
+            const delCell = document.createElement('div');
+            delCell.className = 'row-delete-btn';
+            delCell.onclick = (e) => { e.stopPropagation(); removeMember(index); };
+            delCell.innerHTML = '×';
+            row.appendChild(delCell);
+
+            return row;
         }
 
         window.toggleAttendance = (memberIndex, dayIndex) => {
@@ -1454,24 +1710,31 @@
 
         // スタック状態管理
         let isStackOpen = false;
-        let isAnimating = false; // アニメーション中フラグ
-        const STACK_MAX_VISIBLE = 4;
 
         // 画面描画
         function render() {
             grid.innerHTML = '';
             members.forEach((m, i) => {
-                const card = createCard(m, i);
-                grid.appendChild(card);
+                grid.appendChild(createRow(m, i));
             });
             updateCoupleSelects();
             updateStackUI();
+
+            // セル編集中ならフォーカス
+            requestAnimationFrame(() => {
+                if (!editingCell) return;
+                const input = grid.querySelector('.cell-editor input');
+                if (input) { input.focus(); const len = input.value.length; input.setSelectionRange(len, len); }
+                const sel = grid.querySelector('.select-editor');
+                if (sel) sel.focus();
+            });
         }
 
         function updateStackUI() {
             const header = document.getElementById('stackHeader');
             const container = document.getElementById('stackContainer');
             const badge = document.getElementById('stackPeekBadge');
+            const fade = document.getElementById('stackFade');
             const btn = document.getElementById('stackToggleBtn');
 
             if (members.length === 0) {
@@ -1487,177 +1750,92 @@
             if (isStackOpen) {
                 container.classList.add('open');
                 badge.style.display = 'none';
+                fade.style.display = 'none';
                 btn.classList.add('open');
                 btn.querySelector('.label').textContent = '折りたたむ';
-
-                const cards = grid.children;
-                for (let i = 0; i < cards.length; i++) {
-                    cards[i].style.cssText = '';
-                }
             } else {
                 container.classList.remove('open');
                 btn.classList.remove('open');
                 btn.querySelector('.label').textContent = '展開する';
 
-                const cards = grid.children;
-                const firstCardHeight = cards[0] ? cards[0].offsetHeight : 160;
-                grid.style.height = (firstCardHeight + STACK_MAX_VISIBLE * 10 + 8) + 'px';
-
-                for (let i = 0; i < cards.length; i++) {
-                    const stackIdx = Math.min(i, STACK_MAX_VISIBLE);
-                    const isVisible = i <= STACK_MAX_VISIBLE;
-                    cards[i].style.position = 'absolute';
-                    cards[i].style.top = '0';
-                    cards[i].style.left = '0';
-                    cards[i].style.width = '100%';
-                    cards[i].style.zIndex = members.length - i;
-                    cards[i].style.transform = `translate(${stackIdx * 10}px, ${stackIdx * 10}px)`;
-                    cards[i].style.opacity = isVisible ? 1 : 0;
-                    cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
-                    cards[i].style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    cards[i].style.pointerEvents = i === 0 ? 'auto' : 'none';
-                }
-
-                if (members.length > 1) {
+                if (members.length > 3) {
+                    fade.style.display = 'block';
                     badge.style.display = 'flex';
-                    document.getElementById('peekCountText').textContent = `他 ${members.length - 1} 名`;
+                    document.getElementById('peekCountText').textContent = `他 ${members.length - 2} 名`;
                 } else {
+                    fade.style.display = 'none';
                     badge.style.display = 'none';
                 }
             }
         }
 
         function toggleMemberStack() {
-            if (isAnimating) return;
-
-            if (!isStackOpen) {
-                // === 展開 (FLIPアニメーション) ===
-                isAnimating = true;
-
-                // 1. FIRST: スタック位置の原点を記録
-                const containerRect = document.getElementById('stackContainer').getBoundingClientRect();
-                const originX = containerRect.left;
-                const originY = containerRect.top;
-
-                // 2. グリッドモードに切り替え
-                isStackOpen = true;
-                grid.style.height = '';
-                render(); // DOM再構築（グリッドレイアウト）
-
-                // 3. LAST: グリッド内の各カードの最終位置を取得 & INVERT
-                requestAnimationFrame(() => {
-                    const cards = grid.children;
-                    for (let i = 0; i < cards.length; i++) {
-                        const finalRect = cards[i].getBoundingClientRect();
-                        const stackIdx = Math.min(i, STACK_MAX_VISIBLE);
-
-                        // スタック原点からの差分を計算
-                        const dx = (originX + stackIdx * 10) - finalRect.left;
-                        const dy = (originY + stackIdx * 10) - finalRect.top;
-
-                        // スタック元位置に配置（変形状態）
-                        cards[i].classList.add('flip-animating');
-                        cards[i].style.transition = 'none';
-                        cards[i].style.transformOrigin = 'top left';
-                        cards[i].style.transform = `translate(${dx}px, ${dy}px) scale(0.88, 0.85) rotateX(6deg) rotateY(-2deg)`;
-                        cards[i].style.opacity = i <= STACK_MAX_VISIBLE ? '0.6' : '0';
-                        cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
-                    }
-
-                    // 4. PLAY: 最終位置へアニメート
-                    requestAnimationFrame(() => {
-                        for (let i = 0; i < cards.length; i++) {
-                            const delay = i * 30;
-                            cards[i].style.transition = [
-                                `transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}ms`,
-                                `opacity 0.45s ease-out ${delay}ms`,
-                                `filter 0.45s ease-out ${delay}ms`
-                            ].join(', ');
-                            cards[i].style.transform = 'translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg)';
-                            cards[i].style.opacity = '1';
-                            cards[i].style.filter = 'brightness(1)';
-                        }
-
-                        // クリーンアップ
-                        const totalDuration = 650 + cards.length * 30 + 50;
-                        setTimeout(() => {
-                            for (let i = 0; i < cards.length; i++) {
-                                cards[i].classList.remove('flip-animating');
-                                cards[i].style.transition = '';
-                                cards[i].style.transform = '';
-                                cards[i].style.opacity = '';
-                                cards[i].style.filter = '';
-                                cards[i].style.transformOrigin = '';
-                            }
-                            isAnimating = false;
-                        }, totalDuration);
-                    });
-                });
-
-            } else {
-                // === 折りたたみ (逆FLIPアニメーション) ===
-                isAnimating = true;
-
-                // 1. FIRST: 現在のグリッド位置を記録
-                const cards = grid.children;
-                const rects = [];
-                for (let i = 0; i < cards.length; i++) {
-                    rects.push(cards[i].getBoundingClientRect());
-                }
-
-                const containerRect = document.getElementById('stackContainer').getBoundingClientRect();
-                const targetX = containerRect.left;
-                const targetY = containerRect.top;
-
-                // 2. グリッド位置を固定（アニメーション中はまだグリッドのまま）
-                for (let i = 0; i < cards.length; i++) {
-                    cards[i].style.position = 'absolute';
-                    cards[i].style.top = (rects[i].top - containerRect.top) + 'px';
-                    cards[i].style.left = (rects[i].left - containerRect.left) + 'px';
-                    cards[i].style.width = rects[i].width + 'px';
-                    cards[i].style.margin = '0';
-                    cards[i].classList.add('flip-animating');
-                }
-
-                // 3. PLAY: スタック原点へアニメート
-                requestAnimationFrame(() => {
-                    for (let i = 0; i < cards.length; i++) {
-                        const stackIdx = Math.min(i, STACK_MAX_VISIBLE);
-                        const delay = (cards.length - 1 - i) * 15; // 逆順スタッガー
-                        cards[i].style.transition = [
-                            `top 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
-                            `left 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
-                            `width 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
-                            `transform 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
-                            `opacity 0.35s ease ${delay}ms`,
-                            `filter 0.35s ease ${delay}ms`
-                        ].join(', ');
-                        cards[i].style.top = (stackIdx * 10) + 'px';
-                        cards[i].style.left = (stackIdx * 10) + 'px';
-                        cards[i].style.width = '100%';
-                        cards[i].style.transform = `scale(0.96, 0.92) rotateX(4deg)`;
-                        cards[i].style.transformOrigin = 'top left';
-                        cards[i].style.opacity = (i <= STACK_MAX_VISIBLE) ? '1' : '0';
-                        cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
-                        cards[i].style.zIndex = members.length - i;
-                    }
-
-                    // 4. アニメーション完了後にスタックレイアウトに切替
-                    const totalDuration = 450 + cards.length * 15 + 80;
-                    setTimeout(() => {
-                        isStackOpen = false;
-                        render();
-                        isAnimating = false;
-                    }, totalDuration);
-                });
-            }
+            isStackOpen = !isStackOpen;
+            render();
         }
 
         function handleStackClick(e) {
-            if (!isStackOpen && !isAnimating && !e.target.closest('input, select, .remove-btn, .tool-toggle, .gender-option, .att-badge')) {
+            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-badge, .cell-display, .row-delete-btn')) {
                 toggleMemberStack();
             }
         }
+
+        // テーブルイベント委譲
+        grid.addEventListener('click', (e) => {
+            // セルクリックで編集開始
+            const display = e.target.closest('.cell-display[data-row][data-col]');
+            if (display) {
+                editingCell = { rowIndex: parseInt(display.dataset.row), colKey: display.dataset.col };
+                render();
+                return;
+            }
+            // セレクトオプションクリック
+            const option = e.target.closest('.select-option');
+            if (option) {
+                e.stopPropagation();
+                const rowIdx = parseInt(option.dataset.row);
+                const colKey = option.dataset.col;
+                members[rowIdx][colKey] = option.dataset.value;
+                editingCell = null;
+                render();
+                return;
+            }
+        });
+
+        grid.addEventListener('input', (e) => {
+            if (e.target.matches('.cell-editor input')) {
+                const rowIdx = parseInt(e.target.dataset.row);
+                members[rowIdx][e.target.dataset.col] = e.target.value;
+            }
+        });
+
+        grid.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const input = e.target.closest('.cell-editor input');
+                if (input) {
+                    e.preventDefault();
+                    const rowIdx = parseInt(input.dataset.row);
+                    const colKey = input.dataset.col;
+                    if (rowIdx < members.length - 1) {
+                        editingCell = { rowIndex: rowIdx + 1, colKey };
+                    } else {
+                        editingCell = null;
+                    }
+                    render();
+                }
+            }
+            if (e.key === 'Escape') {
+                editingCell = null;
+                render();
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (editingCell && !document.getElementById('gridWrapper').contains(e.target)) {
+                editingCell = null;
+                render();
+            }
+        });
 
         // データ更新
         window.updateMember = (index, key, value) => {
