@@ -257,21 +257,14 @@
             color: white;
         }
 
-        /* 展開時のグリッドアニメーション */
-        .stack-container.open .member-card {
-            animation: cardFlyIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        /* 展開時の3Dパースペクティブ */
+        .stack-container.open .member-grid {
+            perspective: 1200px;
         }
 
-        @keyframes cardFlyIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        /* FLIPアニメーション中のカード */
+        .member-card.flip-animating {
+            will-change: transform, opacity;
         }
 
         .card-row {
@@ -1461,17 +1454,14 @@
 
         // スタック状態管理
         let isStackOpen = false;
-        const STACK_MAX_VISIBLE = 4; // 折りたたみ時に見える最大枚数
+        let isAnimating = false; // アニメーション中フラグ
+        const STACK_MAX_VISIBLE = 4;
 
         // 画面描画
         function render() {
             grid.innerHTML = '';
             members.forEach((m, i) => {
                 const card = createCard(m, i);
-                // 展開時はスタッガードアニメーション
-                if (isStackOpen) {
-                    card.style.animationDelay = `${i * 20}ms`;
-                }
                 grid.appendChild(card);
             });
             updateCoupleSelects();
@@ -1500,18 +1490,15 @@
                 btn.classList.add('open');
                 btn.querySelector('.label').textContent = '折りたたむ';
 
-                // 全カードを通常表示
                 const cards = grid.children;
                 for (let i = 0; i < cards.length; i++) {
-                    cards[i].style.cssText = ''; // インラインスタイルクリア
-                    cards[i].style.animationDelay = `${i * 20}ms`;
+                    cards[i].style.cssText = '';
                 }
             } else {
                 container.classList.remove('open');
                 btn.classList.remove('open');
                 btn.querySelector('.label').textContent = '展開する';
 
-                // スタック表示の制御
                 const cards = grid.children;
                 const firstCardHeight = cards[0] ? cards[0].offsetHeight : 160;
                 grid.style.height = (firstCardHeight + STACK_MAX_VISIBLE * 10 + 8) + 'px';
@@ -1529,10 +1516,8 @@
                     cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
                     cards[i].style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     cards[i].style.pointerEvents = i === 0 ? 'auto' : 'none';
-                    cards[i].style.animation = 'none';
                 }
 
-                // バッジ表示
                 if (members.length > 1) {
                     badge.style.display = 'flex';
                     document.getElementById('peekCountText').textContent = `他 ${members.length - 1} 名`;
@@ -1543,15 +1528,133 @@
         }
 
         function toggleMemberStack() {
-            isStackOpen = !isStackOpen;
-            // 展開時はgridの固定高さを解除
-            if (isStackOpen) grid.style.height = '';
-            render();
+            if (isAnimating) return;
+
+            if (!isStackOpen) {
+                // === 展開 (FLIPアニメーション) ===
+                isAnimating = true;
+
+                // 1. FIRST: スタック位置の原点を記録
+                const containerRect = document.getElementById('stackContainer').getBoundingClientRect();
+                const originX = containerRect.left;
+                const originY = containerRect.top;
+
+                // 2. グリッドモードに切り替え
+                isStackOpen = true;
+                grid.style.height = '';
+                render(); // DOM再構築（グリッドレイアウト）
+
+                // 3. LAST: グリッド内の各カードの最終位置を取得 & INVERT
+                requestAnimationFrame(() => {
+                    const cards = grid.children;
+                    for (let i = 0; i < cards.length; i++) {
+                        const finalRect = cards[i].getBoundingClientRect();
+                        const stackIdx = Math.min(i, STACK_MAX_VISIBLE);
+
+                        // スタック原点からの差分を計算
+                        const dx = (originX + stackIdx * 10) - finalRect.left;
+                        const dy = (originY + stackIdx * 10) - finalRect.top;
+
+                        // スタック元位置に配置（変形状態）
+                        cards[i].classList.add('flip-animating');
+                        cards[i].style.transition = 'none';
+                        cards[i].style.transformOrigin = 'top left';
+                        cards[i].style.transform = `translate(${dx}px, ${dy}px) scale(0.88, 0.85) rotateX(6deg) rotateY(-2deg)`;
+                        cards[i].style.opacity = i <= STACK_MAX_VISIBLE ? '0.6' : '0';
+                        cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
+                    }
+
+                    // 4. PLAY: 最終位置へアニメート
+                    requestAnimationFrame(() => {
+                        for (let i = 0; i < cards.length; i++) {
+                            const delay = i * 30;
+                            cards[i].style.transition = [
+                                `transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}ms`,
+                                `opacity 0.45s ease-out ${delay}ms`,
+                                `filter 0.45s ease-out ${delay}ms`
+                            ].join(', ');
+                            cards[i].style.transform = 'translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg)';
+                            cards[i].style.opacity = '1';
+                            cards[i].style.filter = 'brightness(1)';
+                        }
+
+                        // クリーンアップ
+                        const totalDuration = 650 + cards.length * 30 + 50;
+                        setTimeout(() => {
+                            for (let i = 0; i < cards.length; i++) {
+                                cards[i].classList.remove('flip-animating');
+                                cards[i].style.transition = '';
+                                cards[i].style.transform = '';
+                                cards[i].style.opacity = '';
+                                cards[i].style.filter = '';
+                                cards[i].style.transformOrigin = '';
+                            }
+                            isAnimating = false;
+                        }, totalDuration);
+                    });
+                });
+
+            } else {
+                // === 折りたたみ (逆FLIPアニメーション) ===
+                isAnimating = true;
+
+                // 1. FIRST: 現在のグリッド位置を記録
+                const cards = grid.children;
+                const rects = [];
+                for (let i = 0; i < cards.length; i++) {
+                    rects.push(cards[i].getBoundingClientRect());
+                }
+
+                const containerRect = document.getElementById('stackContainer').getBoundingClientRect();
+                const targetX = containerRect.left;
+                const targetY = containerRect.top;
+
+                // 2. グリッド位置を固定（アニメーション中はまだグリッドのまま）
+                for (let i = 0; i < cards.length; i++) {
+                    cards[i].style.position = 'absolute';
+                    cards[i].style.top = (rects[i].top - containerRect.top) + 'px';
+                    cards[i].style.left = (rects[i].left - containerRect.left) + 'px';
+                    cards[i].style.width = rects[i].width + 'px';
+                    cards[i].style.margin = '0';
+                    cards[i].classList.add('flip-animating');
+                }
+
+                // 3. PLAY: スタック原点へアニメート
+                requestAnimationFrame(() => {
+                    for (let i = 0; i < cards.length; i++) {
+                        const stackIdx = Math.min(i, STACK_MAX_VISIBLE);
+                        const delay = (cards.length - 1 - i) * 15; // 逆順スタッガー
+                        cards[i].style.transition = [
+                            `top 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
+                            `left 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
+                            `width 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
+                            `transform 0.45s cubic-bezier(0.55, 0, 0.1, 1) ${delay}ms`,
+                            `opacity 0.35s ease ${delay}ms`,
+                            `filter 0.35s ease ${delay}ms`
+                        ].join(', ');
+                        cards[i].style.top = (stackIdx * 10) + 'px';
+                        cards[i].style.left = (stackIdx * 10) + 'px';
+                        cards[i].style.width = '100%';
+                        cards[i].style.transform = `scale(0.96, 0.92) rotateX(4deg)`;
+                        cards[i].style.transformOrigin = 'top left';
+                        cards[i].style.opacity = (i <= STACK_MAX_VISIBLE) ? '1' : '0';
+                        cards[i].style.filter = `brightness(${1 - stackIdx * 0.06})`;
+                        cards[i].style.zIndex = members.length - i;
+                    }
+
+                    // 4. アニメーション完了後にスタックレイアウトに切替
+                    const totalDuration = 450 + cards.length * 15 + 80;
+                    setTimeout(() => {
+                        isStackOpen = false;
+                        render();
+                        isAnimating = false;
+                    }, totalDuration);
+                });
+            }
         }
 
         function handleStackClick(e) {
-            // 折りたたみ時にスタックをクリックしたら展開
-            if (!isStackOpen && !e.target.closest('input, select, .remove-btn, .tool-toggle, .gender-option, .att-badge')) {
+            if (!isStackOpen && !isAnimating && !e.target.closest('input, select, .remove-btn, .tool-toggle, .gender-option, .att-badge')) {
                 toggleMemberStack();
             }
         }
