@@ -197,6 +197,53 @@
             transform: scale(1.1);
         }
 
+        /* 出欠バッジ */
+        .attendance-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .att-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            line-height: 1.3;
+        }
+
+        .att-badge.present {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .att-badge.present:hover {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .att-badge.absent {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .att-badge.absent:hover {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
         /* Controls */
         .controls {
             background: var(--card-bg);
@@ -1156,11 +1203,42 @@
         // 初期データ（なければ空）
         let members = [];
 
+        // 日数変更時にカードを再描画（出欠バッジの数を更新）
+        document.getElementById('numDaysInput').addEventListener('change', () => {
+            if (members.length > 0) render();
+        });
+
         // カードを生成する関数
         // icons: 🔧 (工具)
+        function getNumDays() {
+            return parseInt(document.getElementById('numDaysInput').value) || 4;
+        }
+
+        function ensureAttendance(member) {
+            const numDays = getNumDays();
+            if (!member.attendance) member.attendance = [];
+            // 日数が増えたら全出席で埋める
+            while (member.attendance.length < numDays) member.attendance.push(true);
+            // 日数が減ったら切り詰める
+            if (member.attendance.length > numDays) member.attendance.length = numDays;
+        }
+
         function createCard(member, index) {
+            ensureAttendance(member);
+            const numDays = getNumDays();
             const div = document.createElement('div');
             div.className = 'member-card';
+
+            // 出欠バッジHTMLを生成
+            let attHtml = '<div class="attendance-row">';
+            for (let d = 0; d < numDays; d++) {
+                const present = member.attendance[d];
+                const cls = present ? 'present' : 'absent';
+                const icon = present ? '○' : '✕';
+                attHtml += `<div class="att-badge ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目の出欠">${d + 1}: ${icon}</div>`;
+            }
+            attHtml += '</div>';
+
             div.innerHTML = `
             <div class="remove-btn" onclick="removeMember(${index})">×</div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
@@ -1183,9 +1261,16 @@
                          data-value="F" onclick="updateGender(${index}, 'F')">女</div>
                 </div>
             </div>
+            ${attHtml}
         `;
             return div;
         }
+
+        window.toggleAttendance = (memberIndex, dayIndex) => {
+            ensureAttendance(members[memberIndex]);
+            members[memberIndex].attendance[dayIndex] = !members[memberIndex].attendance[dayIndex];
+            render();
+        };
 
         // 画面描画
         function render() {
@@ -1212,7 +1297,9 @@
         };
 
         window.addMember = () => {
-            members.push({ name: '', grade: '1', gender: 'M', is_tool: false });
+            const numDays = getNumDays();
+            const attendance = new Array(numDays).fill(true);
+            members.push({ name: '', grade: '1', gender: 'M', is_tool: false, attendance });
             render();
         };
 
@@ -1250,7 +1337,9 @@
                 }
 
                 if (name) {
-                    members.push({ name, grade, gender, is_tool });
+                    const numDays = getNumDays();
+                    const attendance = new Array(numDays).fill(true);
+                    members.push({ name, grade, gender, is_tool, attendance });
                 }
             });
 
@@ -1261,7 +1350,11 @@
 
         // 送信時にCSVテキスト形式に変換して隠しフィールドに入れる
         function updateHiddenField() {
-            const csvLines = members.map(m => `${m.name},${m.grade},${m.gender},${m.is_tool ? 'TOOL' : ''}`);
+            const csvLines = members.map(m => {
+                ensureAttendance(m);
+                const attStr = m.attendance.map(a => a ? '1' : '0').join(';');
+                return `${m.name},${m.grade},${m.gender},${m.is_tool ? 'TOOL' : ''},${attStr}`;
+            });
             hiddenInput.value = csvLines.join('\n');
             // 恋人ペアもセット
             document.getElementById('hidden-couples').value = JSON.stringify(couplesPairs);
@@ -1637,10 +1730,13 @@
                 });
             }
 
-            // 未配置プールにメンバーを配置
+            // 未配置プールにメンバーを配置（当日出席者のみ）
             const pool = document.getElementById('poolList');
             pool.innerHTML = '';
             members.forEach(m => {
+                ensureAttendance(m);
+                const dayIdx = hybridCurrentDay - 1;
+                if (!m.attendance[dayIdx]) return; // 欠席者はスキップ
                 const chip = createChip(m);
                 pool.appendChild(chip);
             });

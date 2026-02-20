@@ -657,6 +657,11 @@
                                 <i class="fas fa-info-circle"></i> 重複: <b id="dup-pill-{{ day.day }}">{{
                                     day.details.duplicate_count }}</b> 組
                             </span>
+                            {% if day.details.absent_count is defined and day.details.absent_count > 0 %}
+                            <span class="info-pill" style="background:#fef2f2; color:#991b1b;">
+                                <i class="fas fa-user-slash"></i> 欠席: <b>{{ day.details.absent_count }}</b> 名
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

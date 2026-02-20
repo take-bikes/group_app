@@ -214,19 +214,41 @@ class GroupOptimizer:
             if day in fixed_day_numbers:
                 continue
 
+            # 出欠フィルタリング: この日に参加するメンバーのみ
+            def is_present(p, d):
+                att = p.get('attendance', [])
+                if d - 1 < len(att):
+                    return att[d - 1]
+                return True  # 出欠データが無い場合は参加扱い
+            
+            day_participants = [p for p in self.participants if is_present(p, day)]
+
+            if len(day_participants) == 0:
+                # 全員欠席の日はスキップ（空のスケジュール）
+                schedule.append({
+                    "day": day,
+                    "groups": [],
+                    "cost": 0,
+                    "details": {'history': 0, 'gender': 0, 'grade': 0, 'tool': 0, 'total': 0, 'duplicate_count': 0, 'absent_count': len(self.participants)},
+                })
+                continue
+
+            # グループ数を参加者数以下に制限
+            effective_groups = min(num_groups, len(day_participants))
+
             best_groups = None
             min_cost = float('inf')
 
             # --- 1. 多点スタート（局所解回避のため数回最初からやり直す） ---
             for _ in range(attempts):
                 # A. ランダム初期解の生成
-                shuffled = self.participants[:]
+                shuffled = day_participants[:]
                 random.shuffle(shuffled)
                 
                 current_groups = []
-                k, m = divmod(len(shuffled), num_groups)
+                k, m = divmod(len(shuffled), effective_groups)
                 start_idx = 0
-                for i in range(num_groups):
+                for i in range(effective_groups):
                     group_size = k + 1 if i < m else k
                     current_groups.append(shuffled[start_idx : start_idx + group_size])
                     start_idx += group_size
@@ -240,7 +262,7 @@ class GroupOptimizer:
                         break # 完璧なら終了
 
                     # グループを2つ選ぶ（g1_idx != g2_idx）
-                    g1_idx, g2_idx = random.sample(range(num_groups), 2)
+                    g1_idx, g2_idx = random.sample(range(effective_groups), 2)
                     
                     # それぞれのグループからメンバーを1人選ぶ
                     # (空グループ対策: 万が一要素がない場合はスキップ)
@@ -304,6 +326,7 @@ class GroupOptimizer:
             
             # detailsに追加
             details['duplicate_count'] = session_dupes
+            details['absent_count'] = len(self.participants) - len(day_participants)
 
             # 結果出力用に整形
             display_groups = self._format_groups(best_groups)

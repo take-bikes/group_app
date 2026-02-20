@@ -70,34 +70,37 @@ def index():
     if request.method == 'POST':
         raw_text = request.form.get('participants')
         
-        # ★ここを変更: 入力テキストを解析して辞書リストを作る
-        # 入力形式: 名前,学年,性別
+        # 入力テキストを解析して辞書リストを作る
+        # 入力形式: 名前,学年,性別,工具,出欠(1;1;0;1)
         participants = []
         for line in raw_text.splitlines():
             line = line.strip()
             if not line: continue
             
-            # カンマまたはスペースで区切る
-            # 空白文字を除去し、空の要素を排除
-            parts = [p.strip() for p in line.replace(' ', ',').replace('　', ',').split(',') if p.strip()]
+            parts = [p.strip() for p in line.split(',') if p.strip() != '']
             
             if not parts: continue
             
-            # データが足りない場合の補完処理
             name = parts[0]
             grade = parts[1] if len(parts) > 1 else "?"
             gender = parts[2] if len(parts) > 2 else "?"
             
-            # 第4要素があれば工具係判定
+            # 第4要素: 工具係判定
             is_tool = False
             if len(parts) > 3:
                 is_tool = parts[3].upper() in ['TOOL', '工具', 'TRUE', 'YES', '1']
+
+            # 第5要素: 出欠データ (例: "1;1;0;1")
+            attendance = []
+            if len(parts) > 4:
+                attendance = [x == '1' for x in parts[4].split(';')]
 
             participants.append({
                 'name': name,
                 'grade': grade,
                 'gender': gender,
-                'is_tool': is_tool
+                'is_tool': is_tool,
+                'attendance': attendance
             })
 
         try:
@@ -106,9 +109,17 @@ def index():
         except ValueError:
             return "数字を正しく入力してください", 400
 
+        # 出欠データが未設定の場合は全日参加扱い
+        for p in participants:
+            if not p['attendance']:
+                p['attendance'] = [True] * num_days
+            # 日数に合わせて調整
+            while len(p['attendance']) < num_days:
+                p['attendance'].append(True)
+
         existing_history = load_history_from_db()
 
-        # オプティマイザーに辞書リストを渡す
+        # オプティマイザーに辞書リストを渡す（出欠情報付き）
         optimizer = GroupOptimizer(participants)
         
         # 履歴データの復元
