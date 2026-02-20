@@ -668,12 +668,11 @@
                                             data-grade="{{ person.grade }}" data-gender="{{ person.gender }}"
                                             data-tool="{{ 'true' if person.is_tool else 'false' }}">
 
-                                            {% if person.is_tool %}
-                                            <span class="tool-badge"><i class="fas fa-wrench"></i> 工具係</span>
-                                            {% endif %}
-
                                             <span class="label {{ 'female' if is_female else 'male' }}">
-                                                {{ person.name }}<span class="grade-text">({{ person.grade }})</span>
+                                                {% if person.is_tool %}<i class="fas fa-wrench"
+                                                    style="margin-right:4px; font-size:0.78em; opacity:0.85;"></i>{%
+                                                endif %}{{ person.name }}<span class="grade-text">({{ person.grade
+                                                    }})</span>
                                             </span>
                                         </div>
 
