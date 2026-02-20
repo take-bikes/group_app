@@ -77,7 +77,7 @@ def index():
             line = line.strip()
             if not line: continue
             
-            parts = [p.strip() for p in line.split(',') if p.strip() != '']
+            parts = [p.strip() for p in line.split(',')]
             
             if not parts: continue
             
