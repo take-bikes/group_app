@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Grouping Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -605,6 +606,28 @@
             transform: scale(1.05);
         }
 
+        /* ドラッグ中のゴースト */
+        .sortable-ghost-hybrid {
+            opacity: 0.35;
+        }
+
+        .hm-chip.sortable-drag {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            transform: scale(1.08);
+            z-index: 9999;
+        }
+
+        /* ドラッグオーバー時のグループハイライト */
+        .group-card-body.drag-over {
+            background: rgba(99, 102, 241, 0.08);
+            border: 2px dashed #6366f1;
+            border-radius: 6px;
+        }
+
+        .pool-list.drag-over {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
         .hm-chip.male {
             background: #2563eb;
         }
@@ -1089,7 +1112,8 @@
                         <h3>📦 未配置メンバー</h3>
                         <div class="pool-counter" id="poolCounter">残り: <b>0</b>名</div>
                     </div>
-                    <div class="pool-hint">👆 メンバーをクリックして選択 → 右のグループをクリックで配置<br>👇 グループ内のメンバーをクリックで未配置に戻す</div>
+                    <div class="pool-hint">👆 クリック: メンバー選択 → グループをクリックで配置<br>🖱️ ドラッグ＆ドロップ: メンバーを直接移動<br>⌨️ キーボード:
+                        メンバー選択後に数字キーでグループ指定</div>
                     <div class="pool-list" id="poolList"></div>
                 </div>
                 <div class="hybrid-groups-panel">
@@ -1629,6 +1653,9 @@
             undoStack = [];
             redoStack = [];
             saveHybridState();
+
+            // --- ドラッグ＆ドロップの初期化 ---
+            initHybridSortable();
         }
 
         function createChip(member) {
@@ -1797,11 +1824,14 @@
             restoreHybridSnapshot(next);
         }
 
-        // Ctrl+Z / Ctrl+Y キーボードショートカット
+        // Ctrl+Z / Ctrl+Y / 数字キー によるキーボードショートカット
         document.addEventListener('keydown', (e) => {
             // ハイブリッドエディタが開いている時のみ
             const overlay = document.getElementById('hybridOverlay');
             if (!overlay || !overlay.classList.contains('visible')) return;
+
+            // input/textareaにフォーカス中は無視
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                 e.preventDefault();
@@ -1809,8 +1839,103 @@
             } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
                 e.preventDefault();
                 redoHybrid();
+            } else if (selectedMember && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                // 数字キーでグループに配置（1〜9）
+                const num = parseInt(e.key);
+                if (!isNaN(num) && num >= 1 && num <= 9) {
+                    e.preventDefault();
+                    const groupIdx = num - 1; // GROUP 1 = index 0
+                    const body = document.querySelector(`.group-card-body[data-group="${groupIdx}"]`);
+                    const card = body ? body.closest('.group-card') : null;
+                    if (body && card && !card.classList.contains('couple-blocked')) {
+                        body.appendChild(selectedMember);
+                        sortGroupBody(body);
+                        deselectMember();
+                        updatePoolCounter();
+                        updateGroupCounts();
+                        saveHybridState();
+                    }
+                } else if (e.key === '0') {
+                    // 0キーで未配置プールに戻す
+                    e.preventDefault();
+                    document.getElementById('poolList').appendChild(selectedMember);
+                    deselectMember();
+                    updatePoolCounter();
+                    updateGroupCounts();
+                    saveHybridState();
+                } else if (e.key === 'Escape') {
+                    // Escで選択解除
+                    e.preventDefault();
+                    deselectMember();
+                }
+            } else if (e.key === 'Escape') {
+                deselectMember();
             }
         });
+
+        // ====== ドラッグ＆ドロップ (SortableJS) ======
+        let hybridSortables = [];
+
+        function initHybridSortable() {
+            // 既存のSortableインスタンスを破棄
+            hybridSortables.forEach(s => s.destroy());
+            hybridSortables = [];
+
+            const pool = document.getElementById('poolList');
+            const groupName = 'hybrid-dnd';
+
+            // プールにSortableを設定
+            hybridSortables.push(
+                new Sortable(pool, {
+                    group: groupName,
+                    animation: 150,
+                    ghostClass: 'sortable-ghost-hybrid',
+                    sort: false, // プール内のソートは不要
+                    onEnd: handleHybridDrop
+                })
+            );
+
+            // 各グループにSortableを設定
+            document.querySelectorAll('.group-card-body').forEach(body => {
+                const card = body.closest('.group-card');
+                hybridSortables.push(
+                    new Sortable(body, {
+                        group: groupName,
+                        animation: 150,
+                        ghostClass: 'sortable-ghost-hybrid',
+                        onEnd: handleHybridDrop,
+                        onAdd: function (evt) {
+                            // 恋人ブロック判定
+                            const chip = evt.item;
+                            const partners = getPartnerNames(chip.dataset.name);
+                            const namesInGroup = Array.from(body.children)
+                                .filter(c => c !== chip)
+                                .map(c => c.dataset.name);
+                            const hasPartner = partners.some(p => namesInGroup.includes(p));
+                            if (hasPartner) {
+                                // 恋人がいるグループ → 元に戻す
+                                evt.from.appendChild(chip);
+                            }
+                        }
+                    })
+                );
+            });
+        }
+
+        function handleHybridDrop(evt) {
+            // ドロップ後に各グループをソート
+            const toBody = evt.to;
+            if (toBody.classList.contains('group-card-body')) {
+                sortGroupBody(toBody);
+            }
+            if (evt.from.classList.contains('group-card-body')) {
+                sortGroupBody(evt.from);
+            }
+            deselectMember();
+            updatePoolCounter();
+            updateGroupCounts();
+            saveHybridState();
+        }
 
         function updatePoolCounter() {
             const pool = document.getElementById('poolList');
