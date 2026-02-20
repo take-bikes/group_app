@@ -386,6 +386,176 @@
             pointer-events: none;
         }
 
+        /* ====== エクスポートアクション ====== */
+        .export-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .export-btn {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .export-btn:hover {
+            color: #4f46e5;
+            border-color: #a5b4fc;
+            background: #eef2ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
+        }
+
+        .export-btn .tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+        }
+
+        .export-btn .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1e293b;
+        }
+
+        .export-btn:hover .tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Discord設定モーダル */
+        .discord-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .discord-modal-overlay.active {
+            display: flex;
+        }
+
+        .discord-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.25s ease;
+        }
+
+        .discord-modal h3 {
+            margin: 0 0 6px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discord-modal .modal-desc {
+            font-size: 0.82rem;
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .discord-modal input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 14px;
+        }
+
+        .discord-modal input[type="text"]:focus {
+            border-color: #5865F2;
+        }
+
+        .discord-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .discord-modal-actions button {
+            padding: 9px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .discord-modal-actions .dm-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .discord-modal-actions .dm-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .discord-modal-actions .dm-send {
+            background: #5865F2;
+            color: white;
+        }
+
+        .discord-modal-actions .dm-send:hover {
+            background: #4752C4;
+        }
+
+        /* 送信ステータス */
+        .discord-status {
+            font-size: 0.8rem;
+            margin-top: 10px;
+            min-height: 1.2em;
+        }
+
+        .discord-status.success {
+            color: #16a34a;
+        }
+
+        .discord-status.error {
+            color: #dc2626;
+        }
+
         /* ====== レスポンシブ ====== */
         @media (max-width: 768px) {
             .sidebar {
@@ -447,14 +617,30 @@
 
                 <div class="day-panel-header">
                     <h2>{{ day.day }}日目</h2>
-                    <div class="info-pills">
-                        <span class="info-pill">
-                            <i class="fas fa-hand-pointer"></i> ドラッグで移動可能
-                        </span>
-                        <span class="info-pill">
-                            <i class="fas fa-info-circle"></i> 重複: <b id="dup-pill-{{ day.day }}">{{
-                                day.details.duplicate_count }}</b> 組
-                        </span>
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <div class="export-actions">
+                            <button class="export-btn" data-action="csv" data-day="{{ day.day }}" title="CSV">
+                                <i class="fas fa-file-csv"></i>
+                                <span class="tooltip">CSVダウンロード</span>
+                            </button>
+                            <button class="export-btn" data-action="excel" data-day="{{ day.day }}" title="Excel">
+                                <i class="fas fa-file-excel"></i>
+                                <span class="tooltip">Excelダウンロード</span>
+                            </button>
+                            <button class="export-btn" data-action="discord" data-day="{{ day.day }}" title="Discord">
+                                <i class="fab fa-discord"></i>
+                                <span class="tooltip">Discordに転送</span>
+                            </button>
+                        </div>
+                        <div class="info-pills">
+                            <span class="info-pill">
+                                <i class="fas fa-hand-pointer"></i> ドラッグで移動可能
+                            </span>
+                            <span class="info-pill">
+                                <i class="fas fa-info-circle"></i> 重複: <b id="dup-pill-{{ day.day }}">{{
+                                    day.details.duplicate_count }}</b> 組
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -505,6 +691,21 @@
         </main>
     </div>
 
+    <!-- Discord Webhook モーダル -->
+    <div class="discord-modal-overlay" id="discordModal">
+        <div class="discord-modal">
+            <h3><i class="fab fa-discord" style="color:#5865F2;"></i> Discordに送信</h3>
+            <p class="modal-desc">Webhook URLを入力してください。URLは次回以降も記憶されます。</p>
+            <input type="text" id="discordWebhookUrl" placeholder="https://discord.com/api/webhooks/...">
+            <input type="hidden" id="discordTargetDay">
+            <div class="discord-modal-actions">
+                <button class="dm-cancel" onclick="closeDiscordModal()">キャンセル</button>
+                <button class="dm-send" onclick="sendToDiscord()"><i class="fab fa-discord"></i> 送信</button>
+            </div>
+            <div class="discord-status" id="discordStatus"></div>
+        </div>
+    </div>
+
     <script>
         // ====== タブ切り替え ======
         function switchDay(tab) {
@@ -544,6 +745,17 @@
                             handleDrop(evt);
                         }
                     });
+                });
+            });
+
+            // エクスポートボタンのイベント登録
+            document.querySelectorAll('.export-btn[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const day = parseInt(btn.dataset.day);
+                    const action = btn.dataset.action;
+                    if (action === 'csv') downloadCSV(day);
+                    else if (action === 'excel') downloadExcel(day);
+                    else if (action === 'discord') openDiscordModal(day);
                 });
             });
         });
@@ -675,6 +887,167 @@
                 const pill = document.getElementById('dup-pill-' + dayNum);
                 if (pill) pill.textContent = dupCount;
             });
+        }
+
+        // ====== エクスポート機能 ======
+
+        /**
+         * 指定した日のグループデータを取得する
+         */
+        function getDayData(dayNum) {
+            const card = document.querySelector(`.card[data-day="${dayNum}"]`);
+            if (!card) return [];
+            const groups = [];
+            card.querySelectorAll('tbody tr').forEach((tr, idx) => {
+                const members = [];
+                tr.querySelectorAll('.person-wrapper').forEach(pw => {
+                    members.push({
+                        name: pw.dataset.name,
+                        grade: pw.dataset.grade,
+                        gender: pw.dataset.gender,
+                        is_tool: pw.dataset.tool === 'true'
+                    });
+                });
+                groups.push({ groupIndex: idx + 1, members });
+            });
+            return groups;
+        }
+
+        /**
+         * CSVダウンロード
+         */
+        function downloadCSV(dayNum) {
+            const groups = getDayData(dayNum);
+            const BOM = '\uFEFF';
+            let csv = BOM + 'グループ,名前,学年,性別,工具係\r\n';
+
+            groups.forEach(g => {
+                g.members.forEach(m => {
+                    csv += `GROUP ${g.groupIndex},${m.name},${m.grade},${m.gender},${m.is_tool ? '○' : ''}\r\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `グループ分け_${dayNum}日目.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        /**
+         * Excelダウンロード (.xls形式のHTML Table)
+         */
+        function downloadExcel(dayNum) {
+            const groups = getDayData(dayNum);
+
+            let table = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            table += '<head><meta charset="utf-8"><style>td,th{padding:4px 8px;border:1px solid #ccc;font-family:sans-serif;} th{background:#f0f0f0;font-weight:bold;}</style></head><body>';
+            table += `<table><thead><tr><th>グループ</th><th>名前</th><th>学年</th><th>性別</th><th>工具係</th></tr></thead><tbody>`;
+
+            groups.forEach(g => {
+                g.members.forEach(m => {
+                    table += `<tr><td>GROUP ${g.groupIndex}</td><td>${m.name}</td><td>${m.grade}</td><td>${m.gender}</td><td>${m.is_tool ? '○' : ''}</td></tr>`;
+                });
+            });
+
+            table += '</tbody></table></body></html>';
+
+            const blob = new Blob([table], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `グループ分け_${dayNum}日目.xls`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        /**
+         * Discord モーダル
+         */
+        function openDiscordModal(dayNum) {
+            document.getElementById('discordTargetDay').value = dayNum;
+            // 保存済みのWebhook URLを復元
+            const saved = localStorage.getItem('discord_webhook_url');
+            if (saved) document.getElementById('discordWebhookUrl').value = saved;
+            document.getElementById('discordStatus').textContent = '';
+            document.getElementById('discordStatus').className = 'discord-status';
+            document.getElementById('discordModal').classList.add('active');
+        }
+
+        function closeDiscordModal() {
+            document.getElementById('discordModal').classList.remove('active');
+        }
+
+        // モーダル外クリックで閉じる
+        document.getElementById('discordModal').addEventListener('click', (e) => {
+            if (e.target.id === 'discordModal') closeDiscordModal();
+        });
+
+        async function sendToDiscord() {
+            const url = document.getElementById('discordWebhookUrl').value.trim();
+            const dayNum = document.getElementById('discordTargetDay').value;
+            const statusEl = document.getElementById('discordStatus');
+
+            if (!url) {
+                statusEl.textContent = 'Webhook URLを入力してください';
+                statusEl.className = 'discord-status error';
+                return;
+            }
+
+            // URLを保存
+            localStorage.setItem('discord_webhook_url', url);
+
+            const groups = getDayData(parseInt(dayNum));
+            if (groups.length === 0) {
+                statusEl.textContent = 'グループデータが見つかりません';
+                statusEl.className = 'discord-status error';
+                return;
+            }
+
+            // Discord embed を構築
+            let description = '';
+            groups.forEach(g => {
+                const memberList = g.members.map(m => {
+                    let line = `${m.name} (${m.grade})`;
+                    if (m.is_tool) line = `🔧 ${line}`;
+                    return line;
+                }).join('\n');
+                description += `**GROUP ${g.groupIndex}** (${g.members.length}名)\n${memberList}\n\n`;
+            });
+
+            const payload = {
+                embeds: [{
+                    title: `📅 ${dayNum}日目 グループ分け結果`,
+                    description: description.trim(),
+                    color: 5793266,
+                    footer: { text: 'Smart Grouping Tool' },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            statusEl.textContent = '送信中...';
+            statusEl.className = 'discord-status';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok || res.status === 204) {
+                    statusEl.textContent = '✅ Discordに送信しました！';
+                    statusEl.className = 'discord-status success';
+                    setTimeout(() => closeDiscordModal(), 1500);
+                } else {
+                    const errText = await res.text();
+                    statusEl.textContent = `❌ 送信失敗 (${res.status}): ${errText.substring(0, 100)}`;
+                    statusEl.className = 'discord-status error';
+                }
+            } catch (err) {
+                statusEl.textContent = `❌ ネットワークエラー: ${err.message}`;
+                statusEl.className = 'discord-status error';
+            }
         }
     </script>
 </body>
