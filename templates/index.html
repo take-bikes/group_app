@@ -83,6 +83,12 @@
         }
 
         /* ====== データグリッド ====== */
+        .grid-wrapper *,
+        .grid-wrapper *::before,
+        .grid-wrapper *::after {
+            box-sizing: border-box;
+        }
+
         .grid-wrapper {
             background: white;
             border: 1px solid #e5e7eb;
@@ -1416,12 +1422,15 @@
         <!-- スタックコンテナ -->
         <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
             <div class="grid-wrapper" id="gridWrapper">
-                <div class="grid-header">
+                <div class="grid-header" id="headerGrid">
                     <div class="row-handle">#</div>
                     <div class="grid-col-header" style="width:160px;">氏名</div>
-                    <div class="grid-col-header" style="width:90px;">学年</div>
-                    <div class="grid-col-header" style="width:80px;">性別</div>
-                    <div class="grid-col-header" style="width:70px;">工具係</div>
+                    <div class="grid-col-header" style="width:90px; cursor:pointer;" onclick="sortMembers('grade')">学年
+                        <span id="sort-grade" style="margin-left:4px; font-size:10px;"></span></div>
+                    <div class="grid-col-header" style="width:80px; cursor:pointer;" onclick="sortMembers('gender')">性別
+                        <span id="sort-gender" style="margin-left:4px; font-size:10px;"></span></div>
+                    <div class="grid-col-header" style="width:70px; cursor:pointer;" onclick="sortMembers('is_tool')">
+                        工具係 <span id="sort-is_tool" style="margin-left:4px; font-size:10px;"></span></div>
                     <div class="grid-col-header" style="flex:1;">出欠</div>
                     <div class="grid-col-header" style="width:36px; padding:0;"></div>
                 </div>
@@ -1705,6 +1714,35 @@
         window.toggleAttendance = (memberIndex, dayIndex) => {
             ensureAttendance(members[memberIndex]);
             members[memberIndex].attendance[dayIndex] = !members[memberIndex].attendance[dayIndex];
+            render();
+        };
+
+        // ソート機能
+        let currentSort = { key: null, asc: true };
+        window.sortMembers = (key) => {
+            if (currentSort.key === key) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.key = key;
+                currentSort.asc = true;
+            }
+            ['grade', 'gender', 'is_tool'].forEach(k => {
+                document.getElementById('sort-' + k).textContent = (k === currentSort.key) ? (currentSort.asc ? '▲' : '▼') : '';
+            });
+            members.sort((a, b) => {
+                let va = a[key], vb = b[key];
+                if (key === 'grade') {
+                    va = getGradeSortValue(va);
+                    vb = getGradeSortValue(vb);
+                } else if (key === 'gender') {
+                    va = va || ''; vb = vb || '';
+                } else if (key === 'is_tool') {
+                    va = va ? 1 : 0; vb = vb ? 1 : 0;
+                }
+                if (va < vb) return currentSort.asc ? -1 : 1;
+                if (va > vb) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
             render();
         };
 
