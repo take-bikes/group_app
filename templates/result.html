@@ -386,6 +386,23 @@
             pointer-events: none;
         }
 
+        /* 恋人ブロック（ドラッグ中） */
+        .members-list.couple-blocked {
+            background: rgba(239, 68, 68, 0.06);
+            border: 2px dashed #f87171 !important;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .members-list.couple-blocked::after {
+            content: '💔';
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
         /* ====== エクスポートアクション ====== */
         .export-actions {
             display: flex;
@@ -724,8 +741,45 @@
         // バックエンドから渡されたDBの履歴 ( "名前A::名前B" : 過去の回数 )
         const dbHistory = JSON.parse('{{ db_history_json | safe }}');
 
+        // 恋人ペアデータ
+        const couplesPairs = JSON.parse('{{ couples_json | safe }}');
+
         function getPairKey(name1, name2) {
             return [name1, name2].sort().join("::");
+        }
+
+        // 恋人ペアから指定メンバーのパートナー名一覧を取得
+        function getCouplePartners(name) {
+            const partners = [];
+            couplesPairs.forEach(c => {
+                if (c.name1 === name) partners.push(c.name2);
+                if (c.name2 === name) partners.push(c.name1);
+            });
+            return partners;
+        }
+
+        // 学年ソート用数値変換
+        const gradeOrder = { 'M2': 6, 'M1': 5, '4': 4, '3': 3, '2': 2, '1': 1 };
+        function getGradeSortValue(gradeStr) {
+            const s = String(gradeStr).trim().toUpperCase();
+            if (gradeOrder[s] !== undefined) return gradeOrder[s];
+            const nums = s.replace(/[^0-9]/g, '');
+            return nums ? parseInt(nums) : 0;
+        }
+
+        // グループ内のメンバーを学年降順にソート
+        function sortMembersList(list) {
+            const items = Array.from(list.children);
+            if (items.length <= 1) return;
+            items.sort((a, b) => getGradeSortValue(b.dataset.grade) - getGradeSortValue(a.dataset.grade));
+            items.forEach(item => list.appendChild(item));
+        }
+
+        // 恋人ブロック表示をクリア
+        function clearCoupleBlocked() {
+            document.querySelectorAll('.members-list.couple-blocked').forEach(el => {
+                el.classList.remove('couple-blocked');
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -740,8 +794,40 @@
                         animation: 150,
                         ghostClass: 'sortable-ghost',
                         dragClass: 'sortable-drag-over',
+                        onStart: function (evt) {
+                            // ドラッグ開始時: 恋人がいるグループをブロック表示
+                            const draggedName = evt.item.dataset.name;
+                            const partners = getCouplePartners(draggedName);
+                            if (partners.length > 0) {
+                                const allLists = card.querySelectorAll('.members-list');
+                                allLists.forEach(ml => {
+                                    if (ml === evt.from) return; // 元のリストはスキップ
+                                    const namesInList = Array.from(ml.children).map(c => c.dataset.name);
+                                    const hasPartner = partners.some(p => namesInList.includes(p));
+                                    if (hasPartner) {
+                                        ml.classList.add('couple-blocked');
+                                    }
+                                });
+                            }
+                        },
                         onEnd: function (evt) {
+                            clearCoupleBlocked();
                             handleDrop(evt);
+                        },
+                        onAdd: function (evt) {
+                            // ドロップ先に恋人がいる場合は元に戻す
+                            const chip = evt.item;
+                            const partners = getCouplePartners(chip.dataset.name);
+                            if (partners.length > 0) {
+                                const toList = evt.to;
+                                const namesInTarget = Array.from(toList.children)
+                                    .filter(c => c !== chip)
+                                    .map(c => c.dataset.name);
+                                const hasPartner = partners.some(p => namesInTarget.includes(p));
+                                if (hasPartner) {
+                                    evt.from.appendChild(chip);
+                                }
+                            }
                         }
                     });
                 });
@@ -757,12 +843,15 @@
                     else if (action === 'discord') openDiscordModal(day);
                 });
             });
+
+            // 初回表示時に各グループを学年順にソート
+            document.querySelectorAll('.members-list').forEach(list => sortMembersList(list));
         });
 
         function handleDrop(evt) {
-            const item = evt.item;
-            const toList = evt.to;
-            const fromList = evt.from;
+            // ドロップ先と元のリストを学年順にソート
+            sortMembersList(evt.to);
+            if (evt.from !== evt.to) sortMembersList(evt.from);
 
             updateScheduleData();
             updateDuplicateCounts();

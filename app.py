@@ -155,7 +155,10 @@ def index():
         js_history = {f"{k[0]}::{k[1]}": v for k, v in existing_history.items()}
         db_history_json = json.dumps(js_history, ensure_ascii=False)
 
-        return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json, db_history_json=db_history_json)
+        # 恋人ペアデータも結果画面に渡す
+        couples_json_for_result = json.dumps(couples, ensure_ascii=False)
+
+        return render_template('result.html', schedule=schedule, message=message, schedule_json=schedule_json, db_history_json=db_history_json, couples_json=couples_json_for_result)
 
     return render_template('index.html')
 
