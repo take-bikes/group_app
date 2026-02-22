@@ -1363,6 +1363,195 @@
             right: 10px;
             font-size: 1.1rem;
         }
+
+        /* ====== オートコンプリート ====== */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: -2px;
+            right: -2px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+            z-index: 100;
+            max-height: 240px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .ac-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: background 0.1s;
+            font-size: 13px;
+        }
+
+        .ac-item:hover,
+        .ac-item.ac-active {
+            background: #f0f4ff;
+        }
+
+        .ac-item-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .ac-item-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .ac-item-info .pill {
+            font-size: 10px;
+            padding: 0px 6px;
+        }
+
+        .ac-hint {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: center;
+        }
+
+        /* ====== 名簿管理モーダル ====== */
+        .registry-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .registry-table th {
+            background: #f3f4f6;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #374151;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+        }
+
+        .registry-table td {
+            padding: 8px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.9rem;
+        }
+
+        .registry-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .registry-delete-btn {
+            color: #d1d5db;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+
+        .registry-delete-btn:hover {
+            color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .registry-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .registry-stats {
+            font-size: 0.82rem;
+            color: #6b7280;
+            margin-left: auto;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.88rem;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: #16a34a;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        .toast.info {
+            background: #2563eb;
+        }
     </style>
 </head>
 
@@ -1520,13 +1709,41 @@
         </div>
 
         <div
-            style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 16px; align-items: center;">
+            style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-secondary" onclick="openRegistry()">
+                📋 名簿管理
+            </button>
+            <button type="button" class="btn-success" onclick="saveCurrentMembersToRegistry()">
+                💾 現在の参加者を名簿に保存
+            </button>
+            <button type="button" class="btn-secondary" onclick="loadAllFromRegistry()">
+                📥 名簿から全員追加
+            </button>
             <button type="button" class="btn-history" onclick="openHistory()">
                 📊 ペア履歴を確認
             </button>
             <a href="/reset" class="btn-text" style="color: #ef4444;" onclick="return confirm('履歴を削除しますか？')">履歴をリセット</a>
         </div>
     </div>
+
+    <!-- 名簿管理モーダル -->
+    <div class="modal-overlay" id="registryModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>📋 メンバー名簿</h2>
+                <button class="modal-close" onclick="closeRegistry()">×</button>
+            </div>
+            <div class="modal-body" id="registryBody">
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
 
     <!-- 履歴モーダル -->
     <div class="modal-overlay" id="historyModal">
@@ -1603,13 +1820,13 @@
             handle.textContent = index + 1;
             row.appendChild(handle);
 
-            // 氏名セル
+            // 氏名セル（オートコンプリート対応）
             const nameCell = document.createElement('div');
             nameCell.className = 'grid-cell';
             nameCell.style.width = '160px';
             const isEditingName = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'name';
             if (isEditingName) {
-                nameCell.innerHTML = `<div class="cell-editor"><input type="text" value="${escapeHTML(member.name || '')}" placeholder="名前を入力" data-row="${index}" data-col="name"></div>`;
+                nameCell.innerHTML = `<div class="cell-editor autocomplete-wrapper"><input type="text" value="${escapeHTML(member.name || '')}" placeholder="名前を入力" data-row="${index}" data-col="name" autocomplete="off"></div>`;
             } else {
                 nameCell.innerHTML = `<div class="cell-display" data-row="${index}" data-col="name"><span class="cell-text ${!member.name ? 'empty' : ''}">${escapeHTML(member.name || '空')}</span></div>`;
             }
@@ -2023,6 +2240,344 @@
                 { name: '佐藤花子', grade: 'M1', gender: 'F', is_tool: false }
             ];
             render();
+        }
+
+        // ===== 名簿マスターキャッシュ =====
+        let masterMembersCache = null;
+
+        async function loadMasterMembers() {
+            try {
+                const res = await fetch('/api/members');
+                masterMembersCache = await res.json();
+            } catch (e) {
+                masterMembersCache = [];
+            }
+            return masterMembersCache;
+        }
+
+        // ===== オートコンプリート =====
+        let acDropdown = null;
+        let acItems = [];
+        let acSelectedIndex = -1;
+        let acDebounceTimer = null;
+
+        // 名前入力のinputイベント
+        grid.addEventListener('input', (e) => {
+            if (e.target.matches('.cell-editor input[data-col="name"]')) {
+                const input = e.target;
+                const rowIdx = parseInt(input.dataset.row);
+                members[rowIdx].name = input.value;
+
+                // デバウンス付きでオートコンプリート候補を取得
+                clearTimeout(acDebounceTimer);
+                acDebounceTimer = setTimeout(() => {
+                    showAutocomplete(input, input.value, rowIdx);
+                }, 150);
+            }
+        });
+
+        async function showAutocomplete(inputEl, query, rowIndex) {
+            // 既存のドロップダウンを削除
+            closeAutocomplete();
+
+            if (!query.trim()) return;
+
+            // マスターデータをキャッシュから取得
+            if (!masterMembersCache) {
+                await loadMasterMembers();
+            }
+
+            // 既に参加者一覧に入っている名前は候補から除外
+            const existingNames = new Set(members.map(m => m.name).filter(n => n));
+
+            // query で部分一致検索
+            const q = query.toLowerCase();
+            acItems = masterMembersCache.filter(m =>
+                m.name.toLowerCase().includes(q) && !existingNames.has(m.name)
+            ).slice(0, 10);
+
+            if (acItems.length === 0) return;
+
+            const wrapper = inputEl.closest('.autocomplete-wrapper');
+            if (!wrapper) return;
+
+            acDropdown = document.createElement('div');
+            acDropdown.className = 'autocomplete-dropdown';
+            acSelectedIndex = -1;
+
+            acItems.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'ac-item';
+                div.dataset.index = idx;
+
+                const gradeLabel = GRADE_MAP[item.grade] || item.grade;
+                const genderLabel = GENDER_MAP[item.gender] || item.gender;
+
+                div.innerHTML = `
+                    <span class="ac-item-name">${escapeHTML(item.name)}</span>
+                    <span class="ac-item-info">
+                        ${pillHTML(gradeLabel, item.grade)}
+                        ${pillHTML(genderLabel, item.gender)}
+                        ${item.is_tool ? '<span class="pill pill-tool">🔧</span>' : ''}
+                    </span>
+                `;
+
+                div.addEventListener('mousedown', (e) => {
+                    e.preventDefault(); // inputのblurを防ぐ
+                    applyAutocomplete(rowIndex, item);
+                });
+
+                acDropdown.appendChild(div);
+            });
+
+            // ヒント
+            const hint = document.createElement('div');
+            hint.className = 'ac-hint';
+            hint.textContent = '↑↓で選択 / Enterで決定 / Tabで確定';
+            acDropdown.appendChild(hint);
+
+            wrapper.appendChild(acDropdown);
+        }
+
+        function applyAutocomplete(rowIndex, masterMember) {
+            members[rowIndex].name = masterMember.name;
+            members[rowIndex].grade = masterMember.grade;
+            members[rowIndex].gender = masterMember.gender;
+            members[rowIndex].is_tool = masterMember.is_tool;
+            editingCell = null;
+            closeAutocomplete();
+            render();
+        }
+
+        function closeAutocomplete() {
+            if (acDropdown && acDropdown.parentNode) {
+                acDropdown.parentNode.removeChild(acDropdown);
+            }
+            acDropdown = null;
+            acItems = [];
+            acSelectedIndex = -1;
+        }
+
+        // キーボードナビゲーション - gridの既存keydownを拡張
+        grid.addEventListener('keydown', (e) => {
+            const input = e.target.closest('.cell-editor input[data-col="name"]');
+            if (!input || !acDropdown) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                acSelectedIndex = Math.min(acSelectedIndex + 1, acItems.length - 1);
+                updateAcHighlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                acSelectedIndex = Math.max(acSelectedIndex - 1, -1);
+                updateAcHighlight();
+            } else if (e.key === 'Enter' && acSelectedIndex >= 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                const rowIdx = parseInt(input.dataset.row);
+                applyAutocomplete(rowIdx, acItems[acSelectedIndex]);
+                return;
+            } else if (e.key === 'Tab' && acSelectedIndex >= 0) {
+                e.preventDefault();
+                const rowIdx = parseInt(input.dataset.row);
+                applyAutocomplete(rowIdx, acItems[acSelectedIndex]);
+                return;
+            } else if (e.key === 'Escape') {
+                closeAutocomplete();
+                return;
+            }
+        }, true); // useCapture=true で既存のkeydownハンドラより先に処理
+
+        function updateAcHighlight() {
+            if (!acDropdown) return;
+            acDropdown.querySelectorAll('.ac-item').forEach((el, i) => {
+                el.classList.toggle('ac-active', i === acSelectedIndex);
+            });
+            // 選択中のアイテムをスクロール
+            const active = acDropdown.querySelector('.ac-item.ac-active');
+            if (active) active.scrollIntoView({ block: 'nearest' });
+        }
+
+        // 外部クリックでオートコンプリートを閉じる
+        document.addEventListener('mousedown', (e) => {
+            if (acDropdown && !acDropdown.contains(e.target)) {
+                closeAutocomplete();
+            }
+        });
+
+        // ===== トースト通知 =====
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            requestAnimationFrame(() => {
+                toast.classList.add('visible');
+            });
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 3000);
+        }
+
+        // ===== 名簿管理 =====
+        const registryModal = document.getElementById('registryModal');
+        const registryBody = document.getElementById('registryBody');
+
+        function openRegistry() {
+            registryModal.classList.add('active');
+            loadRegistry();
+        }
+
+        function closeRegistry() {
+            registryModal.classList.remove('active');
+        }
+
+        registryModal.addEventListener('click', (e) => {
+            if (e.target === registryModal) closeRegistry();
+        });
+
+        async function loadRegistry() {
+            registryBody.innerHTML = `
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
+                </div>`;
+
+            try {
+                const res = await fetch('/api/members');
+                const data = await res.json();
+                masterMembersCache = data;
+                renderRegistry(data);
+            } catch (err) {
+                registryBody.innerHTML = `
+                    <div class="history-empty">
+                        <div class="empty-icon">❌</div>
+                        <p>データの読み込みに失敗しました</p>
+                    </div>`;
+            }
+        }
+
+        function renderRegistry(data) {
+            if (!data || data.length === 0) {
+                registryBody.innerHTML = `
+                    <div class="registry-actions">
+                        <button class="btn-success" onclick="saveCurrentMembersToRegistry()">💾 現在の参加者を名簿に保存</button>
+                    </div>
+                    <div class="history-empty">
+                        <div class="empty-icon">📭</div>
+                        <p>名簿にメンバーが登録されていません。<br>参加者を追加した後、「現在の参加者を名簿に保存」ボタンで登録できます。</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `
+                <div class="registry-actions">
+                    <button class="btn-success" onclick="saveCurrentMembersToRegistry()">💾 現在の参加者を名簿に保存</button>
+                    <span class="registry-stats">登録済み: ${data.length}名</span>
+                </div>
+                <table class="registry-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>氏名</th>
+                            <th>学年</th>
+                            <th>性別</th>
+                            <th>工具係</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            data.forEach((m, i) => {
+                const gradeLabel = GRADE_MAP[m.grade] || m.grade;
+                const genderLabel = GENDER_MAP[m.gender] || m.gender;
+                html += `
+                    <tr>
+                        <td style="color:#9ca3af;">${i + 1}</td>
+                        <td style="font-weight:600;">${escapeHTML(m.name)}</td>
+                        <td>${pillHTML(gradeLabel, m.grade)}</td>
+                        <td>${pillHTML(genderLabel, m.gender)}</td>
+                        <td>${m.is_tool ? pillHTML('🔧', 'tool') : '<span style="color:#d1d5db;">―</span>'}</td>
+                        <td><span class="registry-delete-btn" onclick="deleteRegistryMember(${m.id})">×</span></td>
+                    </tr>`;
+            });
+
+            html += '</tbody></table>';
+            registryBody.innerHTML = html;
+        }
+
+        async function deleteRegistryMember(id) {
+            try {
+                await fetch(`/api/members/${id}`, { method: 'DELETE' });
+                masterMembersCache = null; // キャッシュクリア
+                loadRegistry();
+                showToast('名簿から削除しました', 'info');
+            } catch (err) {
+                showToast('削除に失敗しました', 'error');
+            }
+        }
+
+        async function saveCurrentMembersToRegistry() {
+            const validMembers = members.filter(m => m.name && m.name.trim());
+            if (validMembers.length === 0) {
+                showToast('保存する参加者がいません', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/members/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ members: validMembers })
+                });
+                const result = await res.json();
+                masterMembersCache = null; // キャッシュクリア
+                showToast(`名簿に保存しました（新規: ${result.added}名, 更新: ${result.updated}名）`, 'success');
+
+                // モーダルが開いていたら再読み込み
+                if (registryModal.classList.contains('active')) {
+                    loadRegistry();
+                }
+            } catch (err) {
+                showToast('保存に失敗しました', 'error');
+            }
+        }
+
+        async function loadAllFromRegistry() {
+            try {
+                const data = await loadMasterMembers();
+                if (!data || data.length === 0) {
+                    showToast('名簿にメンバーが登録されていません', 'error');
+                    return;
+                }
+
+                // 既存の参加者名をセットにする
+                const existingNames = new Set(members.map(m => m.name).filter(n => n));
+                const numDays = getNumDays();
+                let addedCount = 0;
+
+                data.forEach(m => {
+                    if (!existingNames.has(m.name)) {
+                        const attendance = new Array(numDays).fill(true);
+                        members.push({
+                            name: m.name,
+                            grade: m.grade,
+                            gender: m.gender,
+                            is_tool: m.is_tool,
+                            attendance
+                        });
+                        addedCount++;
+                    }
+                });
+
+                render();
+                if (addedCount > 0) {
+                    showToast(`名簿から ${addedCount}名 を追加しました`, 'success');
+                } else {
+                    showToast('追加するメンバーがいません（全員追加済み）', 'info');
+                }
+            } catch (err) {
+                showToast('名簿の読み込みに失敗しました', 'error');
+            }
         }
 
         // ===== 履歴モーダル機能 =====

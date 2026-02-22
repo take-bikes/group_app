@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from itertools import combinations
 from logic import GroupOptimizer
@@ -22,6 +22,14 @@ class PairHistory(db.Model):
     person1 = db.Column(db.String(50), nullable=False)
     person2 = db.Column(db.String(50), nullable=False)
     count = db.Column(db.Integer, default=0)
+
+# メンバー名簿マスター: 名前・学年・性別・工具係を保存
+class MemberMaster(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    grade = db.Column(db.String(10), nullable=False, default='1')
+    gender = db.Column(db.String(10), nullable=False, default='M')
+    is_tool = db.Column(db.Boolean, default=False)
 
 # アプリ起動時にデータベースファイルがなければ作成する
 with app.app_context():
@@ -209,6 +217,104 @@ def save_result():
             return f"保存中にエラーが発生しました: {e}", 500
     return "データが見つかりません", 400
     return "履歴を全てリセットしました。<a href='/'>戻る</a>"
+
+# --- メンバー名簿API ---
+@app.route('/api/members', methods=['GET'])
+def api_members_list():
+    """名簿の全メンバーをJSON形式で返す"""
+    members = MemberMaster.query.order_by(MemberMaster.name).all()
+    return jsonify([{
+        'id': m.id,
+        'name': m.name,
+        'grade': m.grade,
+        'gender': m.gender,
+        'is_tool': m.is_tool
+    } for m in members])
+
+@app.route('/api/members/search', methods=['GET'])
+def api_members_search():
+    """名前で部分一致検索"""
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+    members = MemberMaster.query.filter(MemberMaster.name.contains(q)).order_by(MemberMaster.name).limit(20).all()
+    return jsonify([{
+        'id': m.id,
+        'name': m.name,
+        'grade': m.grade,
+        'gender': m.gender,
+        'is_tool': m.is_tool
+    } for m in members])
+
+@app.route('/api/members', methods=['POST'])
+def api_members_add():
+    """メンバーを名簿に追加（既に存在する場合は更新）"""
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': '名前が必要です'}), 400
+    
+    existing = MemberMaster.query.filter_by(name=name).first()
+    if existing:
+        existing.grade = data.get('grade', existing.grade)
+        existing.gender = data.get('gender', existing.gender)
+        existing.is_tool = data.get('is_tool', existing.is_tool)
+    else:
+        new_member = MemberMaster(
+            name=name,
+            grade=data.get('grade', '1'),
+            gender=data.get('gender', 'M'),
+            is_tool=data.get('is_tool', False)
+        )
+        db.session.add(new_member)
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/members/bulk', methods=['POST'])
+def api_members_bulk_add():
+    """複数メンバーを一括登録（参加者一覧から名簿に保存）"""
+    data = request.get_json()
+    members_data = data.get('members', [])
+    added = 0
+    updated = 0
+    for m in members_data:
+        name = m.get('name', '').strip()
+        if not name:
+            continue
+        existing = MemberMaster.query.filter_by(name=name).first()
+        if existing:
+            existing.grade = m.get('grade', existing.grade)
+            existing.gender = m.get('gender', existing.gender)
+            existing.is_tool = m.get('is_tool', existing.is_tool)
+            updated += 1
+        else:
+            new_member = MemberMaster(
+                name=name,
+                grade=m.get('grade', '1'),
+                gender=m.get('gender', 'M'),
+                is_tool=m.get('is_tool', False)
+            )
+            db.session.add(new_member)
+            added += 1
+    db.session.commit()
+    return jsonify({'status': 'ok', 'added': added, 'updated': updated})
+
+@app.route('/api/members/<int:member_id>', methods=['DELETE'])
+def api_members_delete(member_id):
+    """メンバーを名簿から削除"""
+    member = MemberMaster.query.get(member_id)
+    if member:
+        db.session.delete(member)
+        db.session.commit()
+        return jsonify({'status': 'ok'})
+    return jsonify({'error': '見つかりません'}), 404
+
+@app.route('/api/members/reset', methods=['POST'])
+def api_members_reset():
+    """名簿を全削除"""
+    db.session.query(MemberMaster).delete()
+    db.session.commit()
+    return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True)
