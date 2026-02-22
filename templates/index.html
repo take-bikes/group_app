@@ -1626,7 +1626,7 @@
 
                 <div style="display:flex; gap: 15px; align-items: center;">
                     <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
-                    <button type="button" class="btn-primary" onclick="showMethodSelection()">次へ: メソッド選択</button>
+                    <button type="button" class="btn-primary" onclick="startHybrid()">次へ: グループ分け設定</button>
                 </div>
 
                 <!-- 恋人ペアセクション -->
@@ -1658,25 +1658,6 @@
             </div>
         </form>
 
-        <!-- メソッド選択エリア -->
-        <div class="method-section" id="methodSection">
-            <h3>⚙️ グループ分けメソッドを選択</h3>
-            <div class="method-cards">
-                <div class="method-card selected" id="methodAuto" onclick="selectMethod('auto')">
-                    <div class="method-icon">🤖</div>
-                    <div class="method-title">全自動</div>
-                    <div class="method-desc">全ての日程を最適化アルゴリズムで自動的に決定します。</div>
-                </div>
-                <div class="method-card" id="methodHybrid" onclick="selectMethod('hybrid')">
-                    <div class="method-icon">🔧</div>
-                    <div class="method-title">ハイブリッド</div>
-                    <div class="method-desc">特定の日程を手動で決め、残りは自動で最適化します。</div>
-                </div>
-            </div>
-            <div style="margin-top: 16px; text-align: center;">
-                <button type="button" class="btn-primary" id="methodNextBtn" onclick="confirmMethod()">実行</button>
-            </div>
-        </div>
 
         <!-- ハイブリッド全画面オーバーレイ -->
         <div class="hybrid-overlay" id="hybridOverlay">
@@ -2726,33 +2707,14 @@
         let undoStack = [];
         let redoStack = [];
 
-        function showMethodSelection() {
+        function startHybrid() {
             updateHiddenField();
             if (members.length === 0) {
                 alert('参加者を先に追加してください。');
                 return;
             }
-            document.getElementById('methodSection').classList.add('visible');
-            document.getElementById('methodSection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function selectMethod(method) {
-            selectedMethod = method;
-            document.getElementById('methodAuto').classList.toggle('selected', method === 'auto');
-            document.getElementById('methodHybrid').classList.toggle('selected', method === 'hybrid');
-            document.getElementById('methodNextBtn').textContent = method === 'auto' ? '実行' : '手動編集へ';
-        }
-
-        function confirmMethod() {
-            if (selectedMethod === 'auto') {
-                document.getElementById('hidden-mode').value = 'auto';
-                updateHiddenField();
-                showLoading();
-                form.submit();
-            } else {
-                confirmedDays = {};
-                initHybridEditor();
-            }
+            confirmedDays = {};
+            initHybridEditor();
         }
 
         // --- ハイブリッドエディタ ---
@@ -3213,9 +3175,11 @@
             document.getElementById('hybridStatus').textContent = `確定: ${confirmedCount}日 / 全${numDays}日`;
 
             const submitBtn = document.getElementById('submitHybridBtn');
-            submitBtn.disabled = confirmedCount === 0;
+            submitBtn.disabled = false;
             if (confirmedCount === numDays) {
                 submitBtn.textContent = '\ud83d\ude80 全日程確定済みで実行';
+            } else if (confirmedCount === 0) {
+                submitBtn.textContent = `\ud83d\ude80 全${numDays}日を自動最適化して実行`;
             } else {
                 submitBtn.textContent = `\ud83d\ude80 残り${remaining}日を自動最適化して実行`;
             }
