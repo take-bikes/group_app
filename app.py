@@ -144,29 +144,20 @@ def index():
                 pair_key = optimizer._get_pair_key(name1, name2)
                 optimizer.pair_history[pair_key] += 3  # 大きな偽装値で回避
 
-        # モード判定
-        mode = request.form.get('mode', 'auto')
+        # 手動日程（確定済み）を受け取り、残りを自動最適化
+        manual_days_json = request.form.get('manual_days', '[]')
+        manual_days = json.loads(manual_days_json)
         
-        if mode == 'hybrid':
-            # ハイブリッドモード: 手動日程を受け取り、残りを自動最適化
-            manual_days_json = request.form.get('manual_days', '[]')
-            manual_days = json.loads(manual_days_json)
-            
-            # fixed_days 形式に変換
-            fixed_days = []
-            for md in manual_days:
-                fixed_days.append({
-                    'day': md['day'],
-                    'groups': md['groups']
-                })
-            
-            schedule = optimizer.make_groups(num_groups, num_days, fixed_days=fixed_days)
-            message = f"ハイブリッドモード: 手動{len(fixed_days)}日 + 自動{num_days - len(fixed_days)}日でグループ分けしました！"
-        else:
-            # 全自動モード（従来通り）
-            schedule = optimizer.make_groups(num_groups, num_days)
-            message = "条件を考慮してグループ分けしました！メンバーをドラッグ＆ドロップで手動調整できます。"
-
+        # fixed_days 形式に変換
+        fixed_days = []
+        for md in manual_days:
+            fixed_days.append({
+                'day': md['day'],
+                'groups': md['groups']
+            })
+        
+        schedule = optimizer.make_groups(num_groups, num_days, fixed_days=fixed_days)
+        message = f"グループ分けしました！"
         # 手動保存のためのデータを準備
         schedule_json = json.dumps(schedule, ensure_ascii=False)
 

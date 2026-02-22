@@ -1607,7 +1607,6 @@
 
         <form method="post" id="mainForm">
             <textarea name="participants" id="hidden-participants"></textarea>
-            <input type="hidden" name="mode" id="hidden-mode" value="auto">
             <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
             <input type="hidden" name="couples" id="hidden-couples" value="[]">
 
@@ -2698,7 +2697,6 @@
         // ======================================================
         // メソッド選択 & ハイブリッドモード
         // ======================================================
-        let selectedMethod = 'auto';
         let hybridCurrentDay = 1;
         let confirmedDays = {};
         let selectedMember = null;  // 現在選択中のメンバーDOM要素
@@ -3186,7 +3184,6 @@
         }
 
         function submitHybrid() {
-            document.getElementById('hidden-mode').value = 'hybrid';
             updateHiddenField();
             const manualDays = Object.values(confirmedDays);
             document.getElementById('hidden-manual-days').value = JSON.stringify(manualDays);
