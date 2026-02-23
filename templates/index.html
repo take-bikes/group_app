@@ -47,14 +47,97 @@
             background-color: var(--bg-base);
             color: var(--text-primary);
             margin: 0;
-            padding: var(--space-6) var(--space-4);
+            padding: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ====== ページ全体レイアウト ====== */
+        .page-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ====== サイドバー ====== */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            border-right: 1px solid var(--border-light);
+        }
+
+        .sidebar-header {
+            padding: var(--space-4) var(--space-4) var(--space-3);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-3);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            text-align: left;
+            width: 100%;
+            transition: var(--transition-standard);
+        }
+
+        .sidebar-btn:hover {
+            background: var(--bg-base);
+            transform: translateY(-1px);
+        }
+
+        /* ====== メインコンテンツ ====== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: var(--space-6) var(--space-4);
         }
 
         .container {
             max-width: 960px;
             margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .main-content {
+                margin-left: 240px;
+                padding: var(--space-4);
+            }
         }
 
         /* Header */
@@ -1596,153 +1679,156 @@
 </head>
 
 <body>
-
-    <div class="container">
-        <header>
-            <h1>⛳ Smart Grouping</h1>
-            <p class="subtitle">Excelやスプレッドシートからコピペするだけで、完璧なグループを作成します。</p>
-        </header>
-
-        <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
-            <textarea id="pasteInput" placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
-        </div>
-
-        <!-- スタックヘッダー -->
-        <div class="stack-header" id="stackHeader">
-            <div class="stack-header-left">
-                <div class="stack-header-icon">👥</div>
-                <div>
-                    <div class="stack-header-title">参加者一覧</div>
-                    <div class="stack-header-count" id="stackCount">総勢 0 名</div>
-                </div>
+    <div class="page-layout">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>⚙️ メニュー</h2>
             </div>
-            <button class="stack-toggle-btn" id="stackToggleBtn" onclick="toggleMemberStack()">
-                <span class="label">展開する</span>
-                <span class="arrow">▼</span>
-            </button>
-        </div>
-
-        <!-- スタックコンテナ -->
-        <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
-            <div class="grid-wrapper" id="gridWrapper">
-                <div class="grid-header" id="headerGrid">
-                    <div class="row-handle">#</div>
-                    <div class="grid-col-header" style="width:160px;">氏名</div>
-                    <div class="grid-col-header sortable" style="width:90px;" onclick="sortMembers('grade')">学年<span
-                            class="sort-icon" id="sort-grade">⇅</span></div>
-                    <div class="grid-col-header sortable" style="width:80px;" onclick="sortMembers('gender')">性別<span
-                            class="sort-icon" id="sort-gender">⇅</span></div>
-                    <div class="grid-col-header sortable" style="width:70px;" onclick="sortMembers('is_tool')">工具係<span
-                            class="sort-icon" id="sort-is_tool">⇅</span></div>
-                    <div class="grid-col-header" style="flex:1;">出欠</div>
-                    <div class="grid-col-header" style="width:36px; padding:0;"></div>
-                </div>
-                <div class="grid-body" id="memberGrid"></div>
-                <div class="ghost-row" onclick="addMember()">
-                    <div class="row-handle" style="background:transparent;">+</div>
-                    <div class="ghost-label">クリックして新しく追加...</div>
-                </div>
+            <div class="sidebar-nav">
+                <button class="sidebar-btn" onclick="openRegistry()">📋 名簿の管理</button>
+                <button class="sidebar-btn" onclick="openHistory()">📊 過去のペア履歴を確認</button>
             </div>
         </div>
+        <main class="main-content">
+            <div class="container">
+                <header>
+                    <h1>⛳ Smart Grouping</h1>
+                    <p class="subtitle">Excelやスプレッドシートからコピペするだけで、完璧なグループを作成します。</p>
+                </header>
 
-        <form method="post" id="mainForm">
-            <textarea name="participants" id="hidden-participants"></textarea>
-            <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
-            <input type="hidden" name="couples" id="hidden-couples" value="[]">
-
-            <div class="controls">
-                <div style="display:flex; gap: 20px;">
-                    <div class="control-group">
-                        <label>グループ数</label>
-                        <input type="number" name="num_groups" id="numGroupsInput" value="10" min="2"
-                            style="width: 80px;">
-                    </div>
-                    <div class="control-group">
-                        <label>日数</label>
-                        <input type="number" name="num_days" id="numDaysInput" value="3" min="1" style="width: 80px;">
-                    </div>
+                <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
+                    <textarea id="pasteInput" placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
                 </div>
 
-                <div style="display:flex; gap: 15px; align-items: center;">
-                    <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
-                    <button type="button" class="btn-primary" onclick="startHybrid()">次へ: グループ分け設定</button>
+                <!-- スタックヘッダー -->
+                <div class="stack-header" id="stackHeader">
+                    <div class="stack-header-left">
+                        <div class="stack-header-icon">👥</div>
+                        <div>
+                            <div class="stack-header-title">参加者一覧</div>
+                            <div class="stack-header-count" id="stackCount">総勢 0 名</div>
+                        </div>
+                    </div>
+                    <button class="stack-toggle-btn" id="stackToggleBtn" onclick="toggleMemberStack()">
+                        <span class="label">展開する</span>
+                        <span class="arrow">▼</span>
+                    </button>
                 </div>
 
-                <!-- 恋人ペアセクション -->
-                <div class="couples-section">
-                    <div class="couples-toggle" onclick="toggleCouplesPanel()">
-                        <div class="couples-toggle-left">
-                            <span>💕</span>
-                            <span>同じグループにしないペア設定</span>
-                            <span id="couplesCount" style="font-size:0.78rem; color:#ec4899; font-weight:400;"></span>
+                <!-- スタックコンテナ -->
+                <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
+                    <div class="grid-wrapper" id="gridWrapper">
+                        <div class="grid-header" id="headerGrid">
+                            <div class="row-handle">#</div>
+                            <div class="grid-col-header" style="width:160px;">氏名</div>
+                            <div class="grid-col-header sortable" style="width:90px;" onclick="sortMembers('grade')">
+                                学年<span class="sort-icon" id="sort-grade">⇅</span></div>
+                            <div class="grid-col-header sortable" style="width:80px;" onclick="sortMembers('gender')">
+                                性別<span class="sort-icon" id="sort-gender">⇅</span></div>
+                            <div class="grid-col-header sortable" style="width:70px;" onclick="sortMembers('is_tool')">
+                                工具係<span class="sort-icon" id="sort-is_tool">⇅</span></div>
+                            <div class="grid-col-header" style="flex:1;">出欠</div>
+                            <div class="grid-col-header" style="width:36px; padding:0;"></div>
                         </div>
-                        <span class="couples-toggle-arrow" id="couplesArrow">▶</span>
-                    </div>
-                    <div class="couples-body" id="couplesBody">
-                        <div class="couples-add-row">
-                            <select id="coupleSelect1">
-                                <option value="">― 選択 ―</option>
-                            </select>
-                            <span class="couple-heart">❤️</span>
-                            <select id="coupleSelect2">
-                                <option value="">― 選択 ―</option>
-                            </select>
-                            <button type="button" class="btn-add-couple" onclick="addCouple()">追加</button>
-                        </div>
-                        <div class="couples-list" id="couplesList">
-                            <div class="couples-empty" id="couplesEmpty">ペアが登録されていません</div>
+                        <div class="grid-body" id="memberGrid"></div>
+                        <div class="ghost-row" onclick="addMember()">
+                            <div class="row-handle" style="background:transparent;">+</div>
+                            <div class="ghost-label">クリックして新しく追加...</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </form>
 
+                <form method="post" id="mainForm">
+                    <textarea name="participants" id="hidden-participants"></textarea>
+                    <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
+                    <input type="hidden" name="couples" id="hidden-couples" value="[]">
 
-        <!-- ハイブリッド全画面オーバーレイ -->
-        <div class="hybrid-overlay" id="hybridOverlay">
-            <div class="hybrid-topbar">
-                <div class="hybrid-topbar-left">
-                    <h2>🔧 手動グループ編集</h2>
-                    <div class="hybrid-topbar-tabs" id="hybridDayTabs"></div>
-                </div>
-                <div class="hybrid-topbar-right">
-                    <span class="hybrid-topbar-status" id="hybridStatus"></span>
-                    <button class="ht-btn confirm" id="confirmDayBtn" onclick="confirmCurrentDay()">✅ この日を確定</button>
-                    <button class="ht-btn submit" id="submitHybridBtn" onclick="submitHybrid()" disabled>🚀 実行</button>
-                    <button class="ht-btn close" onclick="closeHybridEditor()">✕ 閉じる</button>
-                </div>
-            </div>
-            <div class="hybrid-main">
-                <div class="hybrid-pool-panel">
-                    <div class="pool-header">
-                        <h3>📦 未配置メンバー</h3>
-                        <div class="pool-counter" id="poolCounter">残り: <b>0</b>名</div>
+                    <div class="controls">
+                        <div style="display:flex; gap: 20px;">
+                            <div class="control-group">
+                                <label>グループ数</label>
+                                <input type="number" name="num_groups" id="numGroupsInput" value="10" min="2"
+                                    style="width: 80px;">
+                            </div>
+                            <div class="control-group">
+                                <label>日数</label>
+                                <input type="number" name="num_days" id="numDaysInput" value="3" min="1"
+                                    style="width: 80px;">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap: 15px; align-items: center;">
+                            <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
+                            <button type="button" class="btn-primary" onclick="startHybrid()">次へ: グループ分け設定</button>
+                        </div>
+
+                        <!-- 恋人ペアセクション -->
+                        <div class="couples-section">
+                            <div class="couples-toggle" onclick="toggleCouplesPanel()">
+                                <div class="couples-toggle-left">
+                                    <span>💕</span>
+                                    <span>同じグループにしないペア設定</span>
+                                    <span id="couplesCount"
+                                        style="font-size:0.78rem; color:#ec4899; font-weight:400;"></span>
+                                </div>
+                                <span class="couples-toggle-arrow" id="couplesArrow">▶</span>
+                            </div>
+                            <div class="couples-body" id="couplesBody">
+                                <div class="couples-add-row">
+                                    <select id="coupleSelect1">
+                                        <option value="">― 選択 ―</option>
+                                    </select>
+                                    <span class="couple-heart">❤️</span>
+                                    <select id="coupleSelect2">
+                                        <option value="">― 選択 ―</option>
+                                    </select>
+                                    <button type="button" class="btn-add-couple" onclick="addCouple()">追加</button>
+                                </div>
+                                <div class="couples-list" id="couplesList">
+                                    <div class="couples-empty" id="couplesEmpty">ペアが登録されていません</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="pool-hint">
-                        👆 クリック: メンバー選択 → グループをクリックで配置<br>
-                        🖱️ ドラッグ＆ドロップ: メンバーを直接移動
-                    </div>
-                    <div class="pool-list" id="poolList"></div>
-                </div>
-                <div class="hybrid-groups-panel">
-                    <div class="groups-grid" id="groupsGrid"></div>
-                </div>
-            </div>
-        </div>
+                </form>
 
-        <div
-            style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 16px; align-items: center; flex-wrap: wrap;">
-            <button type="button" class="btn-secondary" onclick="openRegistry()">
-                📋 名簿管理
-            </button>
-            <button type="button" class="btn-success" onclick="saveCurrentMembersToRegistry()">
-                💾 現在の参加者を名簿に保存
-            </button>
-            <button type="button" class="btn-history" onclick="openHistory()">
-                📊 ペア履歴を確認
-            </button>
-            <a href="/reset" class="btn-text" style="color: #ef4444;" onclick="return confirm('履歴を削除しますか？')">履歴をリセット</a>
-        </div>
+
+                <!-- ハイブリッド全画面オーバーレイ -->
+                <div class="hybrid-overlay" id="hybridOverlay">
+                    <div class="hybrid-topbar">
+                        <div class="hybrid-topbar-left">
+                            <h2>🔧 手動グループ編集</h2>
+                            <div class="hybrid-topbar-tabs" id="hybridDayTabs"></div>
+                        </div>
+                        <div class="hybrid-topbar-right">
+                            <span class="hybrid-topbar-status" id="hybridStatus"></span>
+                            <button class="ht-btn confirm" id="confirmDayBtn" onclick="confirmCurrentDay()">✅
+                                この日を確定</button>
+                            <button class="ht-btn submit" id="submitHybridBtn" onclick="submitHybrid()" disabled>🚀
+                                実行</button>
+                            <button class="ht-btn close" onclick="closeHybridEditor()">✕ 閉じる</button>
+                        </div>
+                    </div>
+                    <div class="hybrid-main">
+                        <div class="hybrid-pool-panel">
+                            <div class="pool-header">
+                                <h3>📦 未配置メンバー</h3>
+                                <div class="pool-counter" id="poolCounter">残り: <b>0</b>名</div>
+                            </div>
+                            <div class="pool-hint">
+                                👆 クリック: メンバー選択 → グループをクリックで配置<br>
+                                🖱️ ドラッグ＆ドロップ: メンバーを直接移動
+                            </div>
+                            <div class="pool-list" id="poolList"></div>
+                        </div>
+                        <div class="hybrid-groups-panel">
+                            <div class="groups-grid" id="groupsGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
 
     <!-- 名簿管理モーダル -->
@@ -1750,7 +1836,13 @@
         <div class="modal" style="max-width: 800px;">
             <div class="modal-header">
                 <h2>📋 メンバー名簿</h2>
-                <button class="modal-close" onclick="closeRegistry()">×</button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="button" class="btn-success" onclick="saveCurrentMembersToRegistry()"
+                        style="padding: 6px 12px; font-size: 13px;">
+                        💾 現在の参加者を名簿に保存
+                    </button>
+                    <button class="modal-close" onclick="closeRegistry()">×</button>
+                </div>
             </div>
             <div class="modal-body" id="registryBody">
                 <div class="history-empty">
@@ -1769,7 +1861,11 @@
         <div class="modal">
             <div class="modal-header">
                 <h2>📊 ペア履歴</h2>
-                <button class="modal-close" onclick="closeHistory()">×</button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <a href="/reset" class="btn-text" style="color: #ef4444; font-size: 13px; text-decoration: none;"
+                        onclick="return confirm('履歴を削除しますか？')">履歴をリセット</a>
+                    <button class="modal-close" onclick="closeHistory()">×</button>
+                </div>
             </div>
             <div class="modal-body" id="historyBody">
                 <div class="history-empty">
