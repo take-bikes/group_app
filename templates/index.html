@@ -564,60 +564,58 @@
             cursor: pointer;
         }
 
-        /* 出欠バッジ (Minimalized) */
-        .attendance-row {
+        /* 出欠セグメントバー (Segmented Track) */
+        .attendance-track {
             display: flex;
-            gap: var(--space-1);
-            flex-wrap: wrap;
             width: 100%;
+            height: 28px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+            padding: 2px;
+            gap: 2px;
         }
 
-        .att-badge {
-            display: inline-flex;
+        .att-segment {
+            flex: 1;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 2px;
-            width: 28px;
-            height: 24px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
             user-select: none;
             transition: var(--transition-standard);
-            background: var(--bg-base);
+            background: transparent;
             color: var(--text-secondary);
-            border: 1px solid transparent;
+            border-radius: calc(var(--radius-pill) - 2px);
         }
 
-        .att-badge.present {
-            /* 存在時はアイコンだけを青にするような印象 */
-            background: var(--bg-surface);
-            color: var(--accent-blue);
-            border-color: var(--border-light);
-        }
-
-        .att-badge.present:hover {
-            background: #FF3B30;
-            /* 赤色へのホバーヒントを控えめに */
-            color: white;
-            border-color: transparent;
-        }
-
-        .att-badge.absent {
+        .att-segment:hover {
             background: var(--bg-base);
-            color: #FF3B30;
-            /* 欠席は赤アイコン */
-            opacity: 0.6;
-            text-decoration: line-through;
         }
 
-        .att-badge.absent:hover {
+        .att-segment.present {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 102, 204, 0.3);
+        }
+
+        .att-segment.present:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        .att-segment.absent {
+            background: transparent;
+            color: #FF3B30;
+            opacity: 0.6;
+        }
+
+        .att-segment.absent:hover {
             background: var(--bg-surface);
-            color: var(--accent-blue);
             opacity: 1;
-            text-decoration: none;
-            border-color: var(--accent-blue);
         }
 
         @media (max-width: 768px) {
@@ -2100,16 +2098,15 @@
             toolCell.innerHTML = `<div class="cell-display" style="justify-content:center; cursor:pointer;" onclick="toggleTool(${index})">${member.is_tool ? pillHTML('🔧', 'tool') : '<span class="cell-text empty" style="font-size:12px;">―</span>'}</div>`;
             row.appendChild(toolCell);
 
-            // 出欠セル
+            // 出欠セル (Segmented Track)
             const attCell = document.createElement('div');
             attCell.className = 'grid-cell';
             attCell.style.flex = '1';
-            let attHtml = '<div class="cell-display"><div class="attendance-row">';
+            let attHtml = '<div class="cell-display"><div class="attendance-track">';
             for (let d = 0; d < numDays; d++) {
                 const present = member.attendance[d];
                 const cls = present ? 'present' : 'absent';
-                const icon = present ? '○' : '✕';
-                attHtml += `<div class="att-badge ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目">${d + 1}:${icon}</div>`;
+                attHtml += `<div class="att-segment ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目">${d + 1}</div>`;
             }
             attHtml += '</div></div>';
             attCell.innerHTML = attHtml;
@@ -2177,7 +2174,7 @@
                 const days = getNumDays();
                 let atts = '';
                 for (let i = 0; i < days; i++) {
-                    atts += `<div class="att-badge present" style="opacity:0.3; cursor:default; background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">${i + 1}:○</div>`;
+                    atts += `<div class="att-segment present" style="opacity:0.6; cursor:default; background:var(--border-light); color:var(--text-secondary); box-shadow:none;">${i + 1}</div>`;
                 }
                 grid.innerHTML = `
                     <div class="grid-row" style="opacity: 0.5; pointer-events: none; user-select: none;">
@@ -2196,7 +2193,7 @@
                         </div>
                         <div class="grid-cell" style="flex:1;">
                             <div class="cell-display">
-                                <div class="attendance-row">
+                                <div class="attendance-track" style="border: 1px dashed var(--border-light); background: transparent; padding: 2px;">
                                     ${atts}
                                 </div>
                             </div>
@@ -2248,7 +2245,7 @@
         }
 
         function handleStackClick(e) {
-            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-badge, .cell-display, .row-delete-btn')) {
+            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-segment, .cell-display, .row-delete-btn')) {
                 toggleMemberStack();
             }
         }
