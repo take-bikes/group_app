@@ -1618,8 +1618,8 @@
                             style="width: 80px;">
                     </div>
                     <div class="control-group">
-                        <label>回数（Days）</label>
-                        <input type="number" name="num_days" id="numDaysInput" value="4" min="1" style="width: 80px;">
+                        <label>日数</label>
+                        <input type="number" name="num_days" id="numDaysInput" value="3" min="1" style="width: 80px;">
                     </div>
                 </div>
 
@@ -1695,9 +1695,6 @@
             </button>
             <button type="button" class="btn-success" onclick="saveCurrentMembersToRegistry()">
                 💾 現在の参加者を名簿に保存
-            </button>
-            <button type="button" class="btn-secondary" onclick="loadAllFromRegistry()">
-                📥 名簿から全員追加
             </button>
             <button type="button" class="btn-history" onclick="openHistory()">
                 📊 ペア履歴を確認
@@ -2062,9 +2059,17 @@
         };
 
         // Excel/CSV貼り付け処理
-        pasteInput.addEventListener('input', (e) => {
+        pasteInput.addEventListener('input', async (e) => {
             const text = e.target.value;
             if (!text.trim()) return;
+
+            // すぐに入力をクリア
+            e.target.value = '';
+
+            // マスターデータをキャッシュから取得（なければフェッチ）
+            if (!masterMembersCache) {
+                await loadMasterMembers();
+            }
 
             // 行で分割
             const rows = text.split(/\n/);
@@ -2076,7 +2081,9 @@
                 if (parts.length === 1) parts = row.split(/\s+/);
 
                 const name = parts[0]?.trim() || '';
-                const grade = parts[1]?.trim() || '?';
+                if (!name) return;
+
+                let grade = parts[1]?.trim() || '?';
                 let genderRaw = parts[2]?.trim() || 'M';
 
                 // 第4引数があれば工具係判定 (例: "tool", "工具", "yes" など)
@@ -2089,15 +2096,19 @@
                     gender = 'F';
                 }
 
-                if (name) {
-                    const numDays = getNumDays();
-                    const attendance = new Array(numDays).fill(true);
-                    members.push({ name, grade, gender, is_tool, attendance });
+                // 名簿にある名前ならそちらの情報を優先して設定
+                const masterMatch = masterMembersCache.find(m => m.name === name);
+                if (masterMatch) {
+                    grade = masterMatch.grade;
+                    gender = masterMatch.gender;
+                    is_tool = masterMatch.is_tool;
                 }
+
+                const numDays = getNumDays();
+                const attendance = new Array(numDays).fill(true);
+                members.push({ name, grade, gender, is_tool, attendance });
             });
 
-            // 入力をクリアして再描画
-            e.target.value = '';
             render();
         });
 
@@ -2522,43 +2533,7 @@
             }
         }
 
-        async function loadAllFromRegistry() {
-            try {
-                const data = await loadMasterMembers();
-                if (!data || data.length === 0) {
-                    showToast('名簿にメンバーが登録されていません', 'error');
-                    return;
-                }
 
-                // 既存の参加者名をセットにする
-                const existingNames = new Set(members.map(m => m.name).filter(n => n));
-                const numDays = getNumDays();
-                let addedCount = 0;
-
-                data.forEach(m => {
-                    if (!existingNames.has(m.name)) {
-                        const attendance = new Array(numDays).fill(true);
-                        members.push({
-                            name: m.name,
-                            grade: m.grade,
-                            gender: m.gender,
-                            is_tool: m.is_tool,
-                            attendance
-                        });
-                        addedCount++;
-                    }
-                });
-
-                render();
-                if (addedCount > 0) {
-                    showToast(`名簿から ${addedCount}名 を追加しました`, 'success');
-                } else {
-                    showToast('追加するメンバーがいません（全員追加済み）', 'info');
-                }
-            } catch (err) {
-                showToast('名簿の読み込みに失敗しました', 'error');
-            }
-        }
 
         // ===== 履歴モーダル機能 =====
         const historyModal = document.getElementById('historyModal');
