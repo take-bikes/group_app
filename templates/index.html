@@ -564,58 +564,89 @@
             cursor: pointer;
         }
 
-        /* 出欠セグメントバー (Segmented Track) */
-        .attendance-track {
-            display: flex;
-            width: 100%;
-            height: 28px;
+        /* 出欠ポップアップボタン */
+        .att-popup-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
             background: var(--bg-surface);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-pill);
-            overflow: hidden;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
-            padding: 2px;
-            gap: 2px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-standard);
+            min-width: 100px;
         }
 
-        .att-segment {
-            flex: 1;
+        .att-popup-btn:hover {
+            background: var(--bg-base);
+            border-color: #d1d5db;
+        }
+
+        .att-popup-btn .chevron {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-left: 6px;
+        }
+
+        /* 出欠ポップアップメニュー */
+        .att-popup-menu {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            padding: 8px 0;
+            min-width: 160px;
+            z-index: 1000;
+            transform-origin: top center;
+            animation: popupFadeIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            /* iOS風のドロップシャドウと質感 */
+        }
+
+        .att-popup-menu.hidden {
+            display: none;
+        }
+
+        @keyframes popupFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .att-popup-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
+            padding: 10px 16px;
             cursor: pointer;
-            user-select: none;
-            transition: var(--transition-standard);
-            background: transparent;
-            color: var(--text-secondary);
-            border-radius: calc(var(--radius-pill) - 2px);
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: background 0.15s;
         }
 
-        .att-segment:hover {
-            background: var(--bg-base);
+        .att-popup-item:hover {
+            background: rgba(0, 0, 0, 0.04);
         }
 
-        .att-segment.present {
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 1px 3px rgba(0, 102, 204, 0.3);
+        .att-check-icon {
+            width: 20px;
+            font-size: 14px;
+            color: var(--accent-blue);
+            visibility: hidden;
+            margin-right: 8px;
         }
 
-        .att-segment.present:hover {
-            background: var(--accent-blue-hover);
-        }
-
-        .att-segment.absent {
-            background: transparent;
-            color: #FF3B30;
-            opacity: 0.6;
-        }
-
-        .att-segment.absent:hover {
-            background: var(--bg-surface);
-            opacity: 1;
+        .att-popup-item.selected .att-check-icon {
+            visibility: visible;
         }
 
         @media (max-width: 768px) {
@@ -1969,6 +2000,11 @@
         </div>
     </div>
 
+    <!-- 出欠ポップアップメニュー枠 -->
+    <div id="attendancePopup" class="att-popup-menu hidden">
+        <!-- JSで動的生成 -->
+    </div>
+
     <script>
         const grid = document.getElementById('memberGrid');
         const hiddenInput = document.getElementById('hidden-participants');
@@ -2098,18 +2134,26 @@
             toolCell.innerHTML = `<div class="cell-display" style="justify-content:center; cursor:pointer;" onclick="toggleTool(${index})">${member.is_tool ? pillHTML('🔧', 'tool') : '<span class="cell-text empty" style="font-size:12px;">―</span>'}</div>`;
             row.appendChild(toolCell);
 
-            // 出欠セル (Segmented Track)
+            // 出欠セル (Popup Menu Button)
             const attCell = document.createElement('div');
             attCell.className = 'grid-cell';
             attCell.style.flex = '1';
-            let attHtml = '<div class="cell-display"><div class="attendance-track">';
+
+            // 欠席日のラベルを作成
+            let absentDays = [];
             for (let d = 0; d < numDays; d++) {
-                const present = member.attendance[d];
-                const cls = present ? 'present' : 'absent';
-                attHtml += `<div class="att-segment ${cls}" onclick="toggleAttendance(${index}, ${d})" title="${d + 1}日目">${d + 1}</div>`;
+                if (!member.attendance[d]) { absentDays.push(d + 1); }
             }
-            attHtml += '</div></div>';
-            attCell.innerHTML = attHtml;
+            let labelLabel = absentDays.length === 0 ? 'なし' : absentDays.join(', ') + '日目';
+
+            attCell.innerHTML = `
+                <div class="cell-display" style="justify-content: flex-start;">
+                    <button class="att-popup-btn" onclick="openAttendancePopup(event, ${index})">
+                        欠席: ${labelLabel}
+                        <span class="chevron">▼</span>
+                    </button>
+                </div>
+            `;
             row.appendChild(attCell);
 
             // 削除ボタン
@@ -2127,6 +2171,55 @@
             members[memberIndex].attendance[dayIndex] = !members[memberIndex].attendance[dayIndex];
             render();
         };
+
+        // ========== 出欠ポップアップ制御 ==========
+        function openAttendancePopup(e, memberIndex) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            const popup = document.getElementById('attendancePopup');
+            const numDays = getNumDays();
+            const member = members[memberIndex];
+
+            // メニューの中身を生成
+            let html = '';
+            for (let d = 0; d < numDays; d++) {
+                const checked = !member.attendance[d]; // 欠席がチェック状態
+                html += `
+                    <div class="att-popup-item ${checked ? 'selected' : ''}" onclick="toggleAttendancePopupItem(event, ${memberIndex}, ${d})">
+                        <span class="att-check-icon">✓</span>
+                        ${d + 1}日目 (欠席)
+                    </div>
+                `;
+            }
+            popup.innerHTML = html;
+
+            // 位置の計算
+            const rect = btn.getBoundingClientRect();
+            popup.style.top = (window.scrollY + rect.bottom + 8) + 'px';
+            popup.style.left = (window.scrollX + rect.left) + 'px';
+
+            popup.classList.remove('hidden');
+        }
+
+        window.toggleAttendancePopupItem = (e, memberIndex, dayIndex) => {
+            e.stopPropagation();
+            members[memberIndex].attendance[dayIndex] = !members[memberIndex].attendance[dayIndex];
+
+            // チェックマークの即時反映
+            const item = e.currentTarget;
+            item.classList.toggle('selected');
+
+            render(); // 背景のボタンのテキスト更新
+        };
+
+        // メニュー外クリックで閉じる
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('attendancePopup');
+            if (!popup.classList.contains('hidden') && !e.target.closest('.att-popup-menu') && !e.target.closest('.att-popup-btn')) {
+                popup.classList.add('hidden');
+            }
+        });
+        // ==========================================
 
         // ソート機能
         let currentSort = { key: null, asc: true };
@@ -2171,11 +2264,6 @@
         function render() {
             grid.innerHTML = '';
             if (members.length === 0) {
-                const days = getNumDays();
-                let atts = '';
-                for (let i = 0; i < days; i++) {
-                    atts += `<div class="att-segment present" style="opacity:0.6; cursor:default; background:var(--border-light); color:var(--text-secondary); box-shadow:none;">${i + 1}</div>`;
-                }
                 grid.innerHTML = `
                     <div class="grid-row" style="opacity: 0.5; pointer-events: none; user-select: none;">
                         <div class="row-handle" style="color:transparent;">1</div>
@@ -2192,10 +2280,11 @@
                             <div class="cell-display" style="justify-content:center"><span class="pill pill-tool" style="background:transparent; border:1px dashed var(--border-light); opacity:0.6;">🔧</span></div>
                         </div>
                         <div class="grid-cell" style="flex:1;">
-                            <div class="cell-display">
-                                <div class="attendance-track" style="border: 1px dashed var(--border-light); background: transparent; padding: 2px;">
-                                    ${atts}
-                                </div>
+                            <div class="cell-display" style="justify-content: flex-start;">
+                                <button class="att-popup-btn" style="border: 1px dashed var(--border-light); background: transparent; color: var(--text-secondary);">
+                                    欠席: なし
+                                    <span class="chevron">▼</span>
+                                </button>
                             </div>
                         </div>
                         <div class="row-delete-btn" style="color:transparent;">×</div>
@@ -2245,7 +2334,7 @@
         }
 
         function handleStackClick(e) {
-            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-segment, .cell-display, .row-delete-btn')) {
+            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-popup-btn, .cell-display, .row-delete-btn')) {
                 toggleMemberStack();
             }
         }
