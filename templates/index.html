@@ -1726,7 +1726,11 @@
                             <div class="grid-col-header sortable" style="width:80px;" onclick="sortMembers('gender')">
                                 性別<span class="sort-icon" id="sort-gender">⇅</span></div>
                             <div class="grid-col-header sortable" style="width:70px;" onclick="sortMembers('is_tool')">
-                                工具係<span class="sort-icon" id="sort-is_tool">⇅</span></div>
+                                ```html
+                                <span style="white-space: nowrap;">工具係</span><span class="sort-icon"
+                                    id="sort-is_tool">⇅</span>
+                            </div>
+                            ```
                             <div class="grid-col-header" style="flex:1;">出欠</div>
                             <div class="grid-col-header" style="width:36px; padding:0;"></div>
                         </div>
@@ -2600,7 +2604,6 @@
 
             let html = `
                 <div class="registry-actions">
-                    <button class="btn-success" onclick="saveCurrentMembersToRegistry()">💾 現在の参加者を名簿に保存</button>
                     <span class="registry-stats">登録済み: ${data.length}名</span>
                 </div>
                 <table class="registry-table">
