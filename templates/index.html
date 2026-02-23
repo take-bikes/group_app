@@ -60,7 +60,7 @@
 
         /* ====== サイドバー ====== */
         .sidebar {
-            width: 280px;
+            width: 220px;
             background: var(--bg-surface);
             color: var(--text-primary);
             display: flex;
@@ -120,7 +120,7 @@
         /* ====== メインコンテンツ ====== */
         .main-content {
             flex: 1;
-            margin-left: 280px;
+            margin-left: 220px;
             padding: var(--space-6) var(--space-4);
         }
 
@@ -131,11 +131,11 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                width: 240px;
+                width: 200px;
             }
 
             .main-content {
-                margin-left: 240px;
+                margin-left: 200px;
                 padding: var(--space-4);
             }
         }
@@ -631,47 +631,114 @@
             }
         }
 
-        /* Controls */
-        .controls {
-            background: var(--bg-surface);
-            padding: var(--space-4);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-light);
+        /* Controls Layout */
+        .main-split {
             display: flex;
-            flex-wrap: wrap;
+            gap: var(--space-5);
+            align-items: flex-start;
+            margin-bottom: var(--space-6);
+        }
+
+        .main-left {
+            flex: 1.5;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-right {
+            flex: 1;
+            min-width: 320px;
+            position: sticky;
+            top: var(--space-6);
+            display: flex;
+            flex-direction: column;
             gap: var(--space-4);
-            align-items: flex-end;
-            justify-content: space-between;
+        }
+
+        .controls {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: var(--space-1);
+            gap: var(--space-2);
         }
 
         .control-group label {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .control-group input[type="number"] {
-            border: 1px solid var(--border-light);
-            background: var(--bg-base);
-            border-radius: var(--radius-sm);
-            padding: 6px 12px;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--text-primary);
-            outline: none;
-            transition: var(--transition-standard);
         }
 
-        .control-group input[type="number"]:focus {
-            background: var(--bg-surface);
-            border-color: var(--accent-blue);
-            box-shadow: var(--shadow-focus);
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-blue);
+        }
+
+        .slider-value {
+            font-size: 16px;
+            font-weight: 600;
+            width: 30px;
+            text-align: right;
+            color: var(--text-primary);
+        }
+
+        /* Float Next Button (Left-bottom of main content) */
+        .fab-next {
+            position: fixed;
+            left: calc(220px + var(--space-5));
+            bottom: var(--space-5);
+            width: 72px;
+            height: 72px;
+            background-color: var(--accent-blue);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 102, 204, 0.4);
+            transition: var(--transition-standard);
+            z-index: 900;
+        }
+
+        .fab-next:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(0, 102, 204, 0.5);
+        }
+
+        @media (max-width: 1024px) {
+            .main-split {
+                flex-direction: column;
+            }
+
+            .main-right {
+                position: static;
+                width: 100%;
+            }
+
+            .fab-next {
+                left: auto;
+                right: var(--space-4);
+            }
         }
 
         .btn-primary {
@@ -1696,102 +1763,127 @@
                     <p class="subtitle">Excelやスプレッドシートからコピペするだけで、完璧なグループを作成します。</p>
                 </header>
 
-                <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
-                    <textarea id="pasteInput" placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
-                </div>
-
-                <!-- スタックヘッダー -->
-                <div class="stack-header" id="stackHeader">
-                    <div class="stack-header-left">
-                        <div class="stack-header-icon">👥</div>
-                        <div>
-                            <div class="stack-header-title">参加者一覧</div>
-                            <div class="stack-header-count" id="stackCount">総勢 0 名</div>
-                        </div>
-                    </div>
-                    <button class="stack-toggle-btn" id="stackToggleBtn" onclick="toggleMemberStack()">
-                        <span class="label">展開する</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                </div>
-
-                <!-- スタックコンテナ -->
-                <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
-                    <div class="grid-wrapper" id="gridWrapper">
-                        <div class="grid-header" id="headerGrid">
-                            <div class="row-handle">#</div>
-                            <div class="grid-col-header" style="width:160px;">氏名</div>
-                            <div class="grid-col-header sortable" style="width:90px;" onclick="sortMembers('grade')">
-                                学年<span class="sort-icon" id="sort-grade">⇅</span></div>
-                            <div class="grid-col-header sortable" style="width:80px;" onclick="sortMembers('gender')">
-                                性別<span class="sort-icon" id="sort-gender">⇅</span></div>
-                            <div class="grid-col-header sortable" style="width:70px;" onclick="sortMembers('is_tool')">
-                                <span style="white-space: nowrap;">工具係</span><span class="sort-icon"
-                                    id="sort-is_tool">⇅</span>
-                            </div>
-                            <div class="grid-col-header" style="flex:1;">出欠</div>
-                            <div class="grid-col-header" style="width:36px; padding:0;"></div>
-                        </div>
-                        <div class="grid-body" id="memberGrid"></div>
-                        <div class="ghost-row" onclick="addMember()">
-                            <div class="row-handle" style="background:transparent;">+</div>
-                            <div class="ghost-label">クリックして新しく追加...</div>
-                        </div>
-                    </div>
-                </div>
-
                 <form method="post" id="mainForm">
-                    <textarea name="participants" id="hidden-participants"></textarea>
+                    <textarea name="participants" id="hidden-participants" style="display:none;"></textarea>
                     <input type="hidden" name="manual_days" id="hidden-manual-days" value="[]">
                     <input type="hidden" name="couples" id="hidden-couples" value="[]">
 
-                    <div class="controls">
-                        <div style="display:flex; gap: 20px;">
-                            <div class="control-group">
-                                <label>グループ数</label>
-                                <input type="number" name="num_groups" id="numGroupsInput" value="10" min="2"
-                                    style="width: 80px;">
+                    <div class="main-split">
+                        <div class="main-left">
+                            <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
+                                <textarea id="pasteInput"
+                                    placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
                             </div>
-                            <div class="control-group">
-                                <label>日数</label>
-                                <input type="number" name="num_days" id="numDaysInput" value="3" min="1"
-                                    style="width: 80px;">
+
+                            <!-- スタックヘッダー -->
+                            <div class="stack-header" id="stackHeader">
+                                <div class="stack-header-left">
+                                    <div class="stack-header-icon">👥</div>
+                                    <div>
+                                        <div class="stack-header-title">参加者一覧</div>
+                                        <div class="stack-header-count" id="stackCount">総勢 0 名</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
+                                    <button type="button" class="stack-toggle-btn" id="stackToggleBtn"
+                                        onclick="toggleMemberStack()">
+                                        <span class="label">展開する</span>
+                                        <span class="arrow">▼</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- スタックコンテナ -->
+                            <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
+                                <div class="grid-wrapper" id="gridWrapper">
+                                    <div class="grid-header" id="headerGrid">
+                                        <div class="row-handle">#</div>
+                                        <div class="grid-col-header" style="width:160px;">氏名</div>
+                                        <div class="grid-col-header sortable" style="width:90px;"
+                                            onclick="sortMembers('grade')">
+                                            学年<span class="sort-icon" id="sort-grade">⇅</span></div>
+                                        <div class="grid-col-header sortable" style="width:80px;"
+                                            onclick="sortMembers('gender')">
+                                            性別<span class="sort-icon" id="sort-gender">⇅</span></div>
+                                        <div class="grid-col-header sortable" style="width:70px;"
+                                            onclick="sortMembers('is_tool')">
+                                            <span style="white-space: nowrap;">工具係</span><span class="sort-icon"
+                                                id="sort-is_tool">⇅</span>
+                                        </div>
+                                        <div class="grid-col-header" style="flex:1;">出欠</div>
+                                        <div class="grid-col-header" style="width:36px; padding:0;"></div>
+                                    </div>
+                                    <div class="grid-body" id="memberGrid"></div>
+                                    <div class="ghost-row" onclick="addMember()">
+                                        <div class="row-handle" style="background:transparent;">+</div>
+                                        <div class="ghost-label">クリックして新しく追加...</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="display:flex; gap: 15px; align-items: center;">
-                            <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
-                            <button type="button" class="btn-primary" onclick="startHybrid()">次へ: グループ分け設定</button>
-                        </div>
+                        <div class="main-right">
+                            <div class="controls">
+                                <div class="control-group">
+                                    <label>グループ数</label>
+                                    <div class="slider-row">
+                                        <input type="range" min="2" max="30" value="10"
+                                            oninput="document.getElementById('numGroupsInput').value=this.value; render();"
+                                            id="numGroupsRange">
+                                        <input type="number" name="num_groups" id="numGroupsInput" value="10" min="2"
+                                            style="display:none;"
+                                            onchange="document.getElementById('numGroupsRange').value=this.value; render();">
+                                        <span class="slider-value" id="numGroupsValue">10</span>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label>日数</label>
+                                    <div class="slider-row">
+                                        <input type="range" min="1" max="14" value="3"
+                                            oninput="document.getElementById('numDaysInput').value=this.value; render();"
+                                            id="numDaysRange">
+                                        <input type="number" name="num_days" id="numDaysInput" value="3" min="1"
+                                            style="display:none;"
+                                            onchange="document.getElementById('numDaysRange').value=this.value; render();">
+                                        <span class="slider-value" id="numDaysValue">3</span>
+                                    </div>
+                                </div>
 
-                        <!-- 恋人ペアセクション -->
-                        <div class="couples-section">
-                            <div class="couples-toggle" onclick="toggleCouplesPanel()">
-                                <div class="couples-toggle-left">
-                                    <span>💕</span>
-                                    <span>同じグループにしないペア設定</span>
-                                    <span id="couplesCount"
-                                        style="font-size:0.78rem; color:#ec4899; font-weight:400;"></span>
-                                </div>
-                                <span class="couples-toggle-arrow" id="couplesArrow">▶</span>
-                            </div>
-                            <div class="couples-body" id="couplesBody">
-                                <div class="couples-add-row">
-                                    <select id="coupleSelect1">
-                                        <option value="">― 選択 ―</option>
-                                    </select>
-                                    <span class="couple-heart">❤️</span>
-                                    <select id="coupleSelect2">
-                                        <option value="">― 選択 ―</option>
-                                    </select>
-                                    <button type="button" class="btn-add-couple" onclick="addCouple()">追加</button>
-                                </div>
-                                <div class="couples-list" id="couplesList">
-                                    <div class="couples-empty" id="couplesEmpty">ペアが登録されていません</div>
+                                <!-- 恋人ペアセクション -->
+                                <div class="couples-section" style="margin-top: 0; box-shadow: none;">
+                                    <div class="couples-toggle" onclick="toggleCouplesPanel()">
+                                        <div class="couples-toggle-left">
+                                            <span style="font-size: 18px;">♡</span>
+                                            <span>カップルペア</span>
+                                            <span id="couplesCount"
+                                                style="font-size:0.78rem; color:#ec4899; font-weight:400; margin-left: 8px;"></span>
+                                        </div>
+                                        <span class="couples-toggle-arrow" id="couplesArrow">▶</span>
+                                    </div>
+                                    <div class="couples-body" id="couplesBody">
+                                        <div class="couples-add-row" style="flex-wrap: nowrap;">
+                                            <select id="coupleSelect1" style="flex: 1; padding: 4px; min-width: 0;">
+                                                <option value="">―</option>
+                                            </select>
+                                            <span class="couple-heart">♡</span>
+                                            <select id="coupleSelect2" style="flex: 1; padding: 4px; min-width: 0;">
+                                                <option value="">―</option>
+                                            </select>
+                                            <button type="button" class="btn-add-couple" onclick="addCouple()"
+                                                style="padding: 4px 10px;">追加</button>
+                                        </div>
+                                        <div class="couples-list" id="couplesList">
+                                            <div class="couples-empty" id="couplesEmpty">ペアが登録されていません</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Floating Next Button -->
+                    <button type="button" class="fab-next" onclick="startHybrid()">次へ</button>
                 </form>
 
 
@@ -1886,6 +1978,25 @@
 
         // 初期データ（なければ空）
         let members = [];
+
+        // DOM Content Loaded to sync slider values automatically
+        document.addEventListener('DOMContentLoaded', () => {
+            const numGroupsRange = document.getElementById('numGroupsRange');
+            const numGroupsInput = document.getElementById('numGroupsInput');
+            const numGroupsValue = document.getElementById('numGroupsValue');
+
+            const syncGroups = () => { numGroupsValue.innerText = numGroupsInput.value; };
+            numGroupsRange.addEventListener('input', syncGroups);
+            numGroupsInput.addEventListener('change', syncGroups);
+
+            const numDaysRange = document.getElementById('numDaysRange');
+            const numDaysInput = document.getElementById('numDaysInput');
+            const numDaysValue = document.getElementById('numDaysValue');
+
+            const syncDays = () => { numDaysValue.innerText = numDaysInput.value; };
+            numDaysRange.addEventListener('input', syncDays);
+            numDaysInput.addEventListener('change', syncDays);
+        });
 
         // 日数変更時にカードを再描画（出欠バッジの数を更新）
         document.getElementById('numDaysInput').addEventListener('change', () => {
