@@ -2502,15 +2502,6 @@
             }
         }
 
-        // 初期表示用のダミーデータ（初回のみ）
-        if (members.length === 0) {
-            members = [
-                { name: '田中一郎', grade: '1', gender: 'M', is_tool: true },
-                { name: '佐藤花子', grade: 'M1', gender: 'F', is_tool: false }
-            ];
-            render();
-        }
-
         // ===== 名簿マスターキャッシュ =====
         let masterMembersCache = null;
 
