@@ -698,10 +698,10 @@
             color: var(--text-primary);
         }
 
-        /* Float Next Button (Left-bottom of main content) */
+        /* Float Next Button (Right-bottom of main content) */
         .fab-next {
             position: fixed;
-            left: calc(220px + var(--space-5));
+            right: var(--space-5);
             bottom: var(--space-5);
             width: 72px;
             height: 72px;
@@ -736,8 +736,8 @@
             }
 
             .fab-next {
-                left: auto;
                 right: var(--space-4);
+                bottom: var(--space-4);
             }
         }
 
@@ -2172,9 +2172,42 @@
         // 画面描画
         function render() {
             grid.innerHTML = '';
-            members.forEach((m, i) => {
-                grid.appendChild(createRow(m, i));
-            });
+            if (members.length === 0) {
+                const days = getNumDays();
+                let atts = '';
+                for (let i = 0; i < days; i++) {
+                    atts += `<div class="att-badge present" style="opacity:0.3; cursor:default; background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">${i + 1}:○</div>`;
+                }
+                grid.innerHTML = `
+                    <div class="grid-row" style="opacity: 0.5; pointer-events: none; user-select: none;">
+                        <div class="row-handle" style="color:transparent;">1</div>
+                        <div class="grid-cell" style="width:160px;">
+                            <div class="cell-display"><span class="cell-text" style="color:var(--text-secondary);">例: 山田 太郎</span></div>
+                        </div>
+                        <div class="grid-cell" style="width:90px;">
+                            <div class="cell-display"><span class="pill pill-M" style="background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">2年</span></div>
+                        </div>
+                        <div class="grid-cell" style="width:80px;">
+                            <div class="cell-display"><span class="pill pill-F" style="background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">男</span></div>
+                        </div>
+                        <div class="grid-cell" style="width:70px;">
+                            <div class="cell-display" style="justify-content:center"><span class="pill pill-tool" style="background:transparent; border:1px dashed var(--border-light); opacity:0.6;">🔧</span></div>
+                        </div>
+                        <div class="grid-cell" style="flex:1;">
+                            <div class="cell-display">
+                                <div class="attendance-row">
+                                    ${atts}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-delete-btn" style="color:transparent;">×</div>
+                    </div>
+                `;
+            } else {
+                members.forEach((m, i) => {
+                    grid.appendChild(createRow(m, i));
+                });
+            }
             updateCoupleSelects();
             updateStackUI();
 
@@ -2192,12 +2225,6 @@
             const header = document.getElementById('stackHeader');
             const container = document.getElementById('stackContainer');
             const btn = document.getElementById('stackToggleBtn');
-
-            if (members.length === 0) {
-                header.classList.remove('visible');
-                container.style.display = 'none';
-                return;
-            }
 
             header.classList.add('visible');
             container.style.display = 'block';
