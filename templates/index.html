@@ -210,7 +210,8 @@
         }
 
         .grid-header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 36px 160px 90px 80px 70px 1fr 36px;
             border-bottom: 1px solid var(--border-light);
             background: rgba(245, 245, 247, 0.5);
             /* 非常に薄いグレー */
@@ -261,7 +262,8 @@
         }
 
         .grid-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 36px 160px 90px 80px 70px 1fr 36px;
             border-bottom: 1px solid var(--border-light);
             transition: var(--transition-standard);
         }
@@ -1829,20 +1831,17 @@
                                 <div class="grid-wrapper" id="gridWrapper">
                                     <div class="grid-header" id="headerGrid">
                                         <div class="row-handle">#</div>
-                                        <div class="grid-col-header" style="width:160px;">氏名</div>
-                                        <div class="grid-col-header sortable" style="width:90px;"
-                                            onclick="sortMembers('grade')">
+                                        <div class="grid-col-header">氏名</div>
+                                        <div class="grid-col-header sortable" onclick="sortMembers('grade')">
                                             学年<span class="sort-icon" id="sort-grade">⇅</span></div>
-                                        <div class="grid-col-header sortable" style="width:80px;"
-                                            onclick="sortMembers('gender')">
+                                        <div class="grid-col-header sortable" onclick="sortMembers('gender')">
                                             性別<span class="sort-icon" id="sort-gender">⇅</span></div>
-                                        <div class="grid-col-header sortable" style="width:70px;"
-                                            onclick="sortMembers('is_tool')">
+                                        <div class="grid-col-header sortable" onclick="sortMembers('is_tool')">
                                             <span style="white-space: nowrap;">工具係</span><span class="sort-icon"
                                                 id="sort-is_tool">⇅</span>
                                         </div>
-                                        <div class="grid-col-header" style="flex:1;">出欠</div>
-                                        <div class="grid-col-header" style="width:36px; padding:0;"></div>
+                                        <div class="grid-col-header">出欠</div>
+                                        <div class="grid-col-header" style="padding:0;"></div>
                                     </div>
                                     <div class="grid-body" id="memberGrid"></div>
                                     <div class="ghost-row" onclick="addMember()">
@@ -2086,7 +2085,6 @@
             // 氏名セル（オートコンプリート対応）
             const nameCell = document.createElement('div');
             nameCell.className = 'grid-cell';
-            nameCell.style.width = '160px';
             const isEditingName = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'name';
             if (isEditingName) {
                 nameCell.innerHTML = `<div class="cell-editor autocomplete-wrapper"><input type="text" value="${escapeHTML(member.name || '')}" placeholder="名前を入力" data-row="${index}" data-col="name" autocomplete="off"></div>`;
@@ -2098,7 +2096,6 @@
             // 学年セル
             const gradeCell = document.createElement('div');
             gradeCell.className = 'grid-cell';
-            gradeCell.style.width = '90px';
             const isEditingGrade = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'grade';
             if (isEditingGrade) {
                 let opts = GRADE_OPTIONS.map(g =>
@@ -2114,7 +2111,6 @@
             // 性別セル
             const genderCell = document.createElement('div');
             genderCell.className = 'grid-cell';
-            genderCell.style.width = '80px';
             const isEditingGender = editingCell && editingCell.rowIndex === index && editingCell.colKey === 'gender';
             if (isEditingGender) {
                 let opts = GENDER_OPTIONS.map(g =>
@@ -2130,26 +2126,24 @@
             // 工具係セル
             const toolCell = document.createElement('div');
             toolCell.className = 'grid-cell';
-            toolCell.style.width = '70px';
             toolCell.innerHTML = `<div class="cell-display" style="justify-content:center; cursor:pointer;" onclick="toggleTool(${index})">${member.is_tool ? pillHTML('🔧', 'tool') : '<span class="cell-text empty" style="font-size:12px;">―</span>'}</div>`;
             row.appendChild(toolCell);
 
             // 出欠セル (Popup Menu Button)
             const attCell = document.createElement('div');
             attCell.className = 'grid-cell';
-            attCell.style.flex = '1';
 
             // 欠席日のラベルを作成
             let absentDays = [];
             for (let d = 0; d < numDays; d++) {
                 if (!member.attendance[d]) { absentDays.push(d + 1); }
             }
-            let labelLabel = absentDays.length === 0 ? 'なし' : absentDays.join(', ') + '日目';
+            let labelLabel = absentDays.length === 0 ? '欠席: なし' : '欠席あり';
 
             attCell.innerHTML = `
                 <div class="cell-display" style="justify-content: flex-start;">
                     <button class="att-popup-btn" onclick="openAttendancePopup(event, ${index})">
-                        欠席: ${labelLabel}
+                        ${labelLabel}
                         <span class="chevron">▼</span>
                     </button>
                 </div>
@@ -2267,19 +2261,19 @@
                 grid.innerHTML = `
                     <div class="grid-row" style="opacity: 0.5; pointer-events: none; user-select: none;">
                         <div class="row-handle" style="color:transparent;">1</div>
-                        <div class="grid-cell" style="width:160px;">
+                        <div class="grid-cell">
                             <div class="cell-display"><span class="cell-text" style="color:var(--text-secondary);">例: 山田 太郎</span></div>
                         </div>
-                        <div class="grid-cell" style="width:90px;">
+                        <div class="grid-cell">
                             <div class="cell-display"><span class="pill pill-M" style="background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">2年</span></div>
                         </div>
-                        <div class="grid-cell" style="width:80px;">
+                        <div class="grid-cell">
                             <div class="cell-display"><span class="pill pill-F" style="background:transparent; border:1px dashed var(--border-light); color:var(--text-secondary);">男</span></div>
                         </div>
-                        <div class="grid-cell" style="width:70px;">
+                        <div class="grid-cell">
                             <div class="cell-display" style="justify-content:center"><span class="pill pill-tool" style="background:transparent; border:1px dashed var(--border-light); opacity:0.6;">🔧</span></div>
                         </div>
-                        <div class="grid-cell" style="flex:1;">
+                        <div class="grid-cell">
                             <div class="cell-display" style="justify-content: flex-start;">
                                 <button class="att-popup-btn" style="border: 1px dashed var(--border-light); background: transparent; color: var(--text-secondary);">
                                     欠席: なし
