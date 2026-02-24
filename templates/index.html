@@ -2138,11 +2138,11 @@
             for (let d = 0; d < numDays; d++) {
                 if (!member.attendance[d]) { absentDays.push(d + 1); }
             }
-            let labelLabel = absentDays.length === 0 ? '欠席: なし' : '欠席あり';
+            let labelLabel = absentDays.length === 0 ? '欠席: なし' : '欠席: あり';
 
             attCell.innerHTML = `
                 <div class="cell-display" style="justify-content: flex-start;">
-                    <button class="att-popup-btn" onclick="openAttendancePopup(event, ${index})">
+                    <button type="button" class="att-popup-btn" onclick="openAttendancePopup(event, ${index})">
                         ${labelLabel}
                         <span class="chevron">▼</span>
                     </button>
@@ -2275,7 +2275,7 @@
                         </div>
                         <div class="grid-cell">
                             <div class="cell-display" style="justify-content: flex-start;">
-                                <button class="att-popup-btn" style="border: 1px dashed var(--border-light); background: transparent; color: var(--text-secondary);">
+                                <button type="button" class="att-popup-btn" style="border: 1px dashed var(--border-light); background: transparent; color: var(--text-secondary);">
                                     欠席: なし
                                     <span class="chevron">▼</span>
                                 </button>
