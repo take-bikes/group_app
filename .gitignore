@@ -3,3 +3,5 @@ __pycache__/
 instance/
 .webassets-cache
 group_app.db
+CLAUDE.md
+.claude/
