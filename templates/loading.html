@@ -1,4 +1,4 @@
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
     /* loading.html 専用のスタイル */
     #loadingOverlay {
@@ -10,8 +10,8 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        background: linear-gradient(to bottom, #f8fbff, #e3eeff);
-        font-family: 'Montserrat', sans-serif;
+        background: linear-gradient(135deg, #F2F1ED 0%, #1A1A2E 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         cursor: default;
     }
 
@@ -32,16 +32,16 @@
         position: relative;
         z-index: 2;
         text-align: center;
-        color: #1a2a3a;
+        color: #FFFFFF;
         pointer-events: none;
         user-select: none;
         margin-top: -5%;
     }
 
     .loading-content-wrapper h1 {
-        font-size: 3.5rem;
-        letter-spacing: 0.3em;
-        font-weight: 200;
+        font-size: 2.5rem;
+        letter-spacing: 0.2em;
+        font-weight: 300;
         margin-bottom: 20px;
         text-transform: uppercase;
     }
@@ -59,7 +59,7 @@
     .loading-bar-container {
         width: 240px;
         height: 2px;
-        background: rgba(26, 42, 58, 0.1);
+        background: rgba(255,255,255,0.15);
         margin: 40px auto 0;
         border-radius: 2px;
         overflow: hidden;
@@ -68,7 +68,7 @@
     .loading-bar-progress {
         width: 0%;
         height: 100%;
-        background: #1a2a3a;
+        background: #5B5FEF;
         animation: loadingProgress 2s infinite ease-in-out;
     }
 
@@ -163,7 +163,7 @@
                 this.dotSize = this.lineWidth * (1.2 + Math.random() * 0.5);
 
                 const baseColor = this.layer === 2 ? 100 : this.layer === 1 ? 150 : 200;
-                this.colorStr = `${10 + Math.random() * 30}, ${baseColor + Math.random() * 50}, ${200 + Math.random() * 55}`;
+                this.colorStr = `${91 + Math.random() * 40}, ${95 + Math.random() * 40}, ${239}`;
             }
 
             update() {

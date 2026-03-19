@@ -3,37 +3,40 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>結果発表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>CUCC — グループ分け結果</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         :root {
-            --bg-base: #F5F5F7;
-            --bg-surface: #FFFFFF;
-            --text-primary: #1D1D1F;
-            --text-secondary: #86868B;
-            --accent-blue: #0066CC;
-            --accent-blue-hover: #007AFF;
-            --accent-light: #f0f8ff;
-            /* Light blue for male/active states */
-            --accent-red-light: #fff0f5;
-            /* Light pink for female states */
-            --border-light: rgba(0, 0, 0, 0.06);
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --radius-sm: 6px;
-            --radius-md: 12px;
-            --radius-lg: 18px;
-            --radius-pill: 9999px;
-            --space-1: 4px;
-            --space-2: 8px;
-            --space-3: 16px;
-            --space-4: 24px;
-            --space-5: 32px;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --color-surface: #F2F1ED;
+            --color-primary: #1A1A2E;
+            --color-accent: #5B5FEF;
+            --color-accent-light: #8B8EF5;
+            --color-accent-muted: #3D4076;
+            --color-ink: #0A0A0A;
+            --color-text-secondary: #4A4A45;
+            --color-text-muted: #9B9B93;
+            --color-border: #E8E6E1;
+            --color-bg-alt: #F7F7F5;
+            --color-white: #FFFFFF;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius-lg: 12px;
+            --radius-sm: 8px;
+            --shadow-card: 0 1px 3px rgba(26,26,46,0.06), 0 8px 32px rgba(26,26,46,0.08);
+            --shadow-focus: 0 0 0 3px rgba(91,95,239,0.12);
+            --container-max: 1200px;
             --transition-standard: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+            --space-1: 4px; --space-2: 8px; --space-3: 16px; --space-4: 24px;
+            --space-5: 32px; --space-6: 48px; --space-7: 64px;
+
+            /* Legacy aliases */
+            --radius-md: 12px;
+            --radius-pill: 9999px;
+            --accent-red-light: #fff0f5;
         }
 
         * {
@@ -43,9 +46,9 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-base);
+            background-color: var(--color-surface);
             font-family: var(--font-family);
-            color: var(--text-primary);
+            color: var(--color-ink);
             -webkit-font-smoothing: antialiased;
         }
 
@@ -58,8 +61,8 @@
         /* ====== サイドバー ====== */
         .sidebar {
             width: 220px;
-            background: var(--bg-surface);
-            color: var(--text-primary);
+            background: var(--color-primary);
+            color: var(--color-text-muted);
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -67,26 +70,26 @@
             left: 0;
             bottom: 0;
             z-index: 100;
-            border-right: 1px solid var(--border-light);
+            border-right: 1px solid rgba(255,255,255,0.08);
         }
 
         .sidebar-header {
             padding: var(--space-4) var(--space-4) var(--space-3);
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .sidebar-header h2 {
             margin: 0;
             font-size: 20px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--color-white);
             letter-spacing: -0.5px;
         }
 
         .sidebar-header p {
             margin: var(--space-1) 0 0;
             font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
         }
 
         .sidebar-nav {
@@ -99,7 +102,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
             padding: var(--space-2) var(--space-2) var(--space-1);
             font-weight: 600;
             margin-bottom: var(--space-1);
@@ -116,18 +119,19 @@
             transition: var(--transition-standard);
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--color-text-muted);
             text-decoration: none;
             border: 1px solid transparent;
         }
 
         .day-tab:hover {
-            background: var(--bg-base);
+            background: rgba(255,255,255,0.06);
+            color: var(--color-white);
         }
 
         .day-tab.active {
-            background: var(--accent-blue);
-            color: #ffffff;
+            background: var(--color-accent);
+            color: var(--color-white);
             font-weight: 600;
         }
 
@@ -143,7 +147,7 @@
 
         .day-tab .dup-badge {
             background: rgba(0, 0, 0, 0.05);
-            color: var(--text-secondary);
+            color: var(--color-text-secondary);
             padding: 2px 8px;
             border-radius: var(--radius-pill);
             font-size: 11px;
@@ -159,11 +163,11 @@
         /* サイドバー下部アクション */
         .sidebar-actions {
             padding: var(--space-4);
-            border-top: 1px solid var(--border-light);
+            border-top: 1px solid rgba(255,255,255,0.08);
             display: flex;
             flex-direction: column;
             gap: var(--space-2);
-            background: var(--bg-surface);
+            background: transparent;
         }
 
         .sidebar-btn {
@@ -176,27 +180,28 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255,255,255,0.1);
             transition: var(--transition-standard);
             text-decoration: none;
             text-align: center;
-            background: var(--bg-surface);
-            color: var(--text-primary);
+            background: transparent;
+            color: var(--color-text-muted);
         }
 
         .sidebar-btn:hover {
-            background: var(--bg-base);
+            background: rgba(255,255,255,0.06);
+            color: var(--color-white);
             transform: translateY(-1px);
         }
 
         .sidebar-btn.save {
-            background: var(--accent-blue);
-            color: white;
-            border-color: var(--accent-blue);
+            background: var(--color-accent);
+            color: var(--color-white);
+            border-color: var(--color-accent);
         }
 
         .sidebar-btn.save:hover {
-            background: var(--accent-blue-hover);
+            background: var(--color-accent-light);
         }
 
         /* ====== メインコンテンツ ====== */
@@ -209,14 +214,14 @@
 
         /* メッセージバナー */
         .message-banner {
-            background-color: var(--bg-surface);
-            color: var(--text-primary);
+            background-color: var(--color-white);
+            color: var(--color-ink);
             padding: var(--space-3) var(--space-4);
             margin-bottom: var(--space-4);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
             font-size: 14px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-card);
             display: flex;
             align-items: center;
             gap: var(--space-2);
@@ -255,14 +260,14 @@
             justify-content: space-between;
             margin-bottom: var(--space-4);
             padding-bottom: var(--space-2);
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--color-border);
         }
 
         .day-panel-header h2 {
             margin: 0;
             font-size: 24px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--color-ink);
             letter-spacing: -0.5px;
         }
 
@@ -275,38 +280,38 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-light);
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
             padding: 4px 10px;
             border-radius: var(--radius-pill);
             font-size: 12px;
             font-weight: 500;
-            color: var(--text-secondary);
-            box-shadow: var(--shadow-sm);
+            color: var(--color-text-secondary);
+            box-shadow: var(--shadow-card);
         }
 
         .info-pill i {
-            color: var(--text-secondary);
+            color: var(--color-text-secondary);
         }
 
         .info-pill b {
-            color: var(--text-primary);
+            color: var(--color-ink);
             font-weight: 600;
         }
 
         /* カードデザイン */
         .card {
-            background: var(--bg-surface);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-light);
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--color-border);
             margin-bottom: var(--space-4);
             overflow: hidden;
             transition: var(--transition-standard);
         }
 
         .card:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-card);
         }
 
         .card table.primary {
@@ -316,10 +321,10 @@
         }
 
         .card table.primary thead th {
-            background-color: var(--bg-base);
-            color: var(--text-secondary);
+            background-color: var(--color-surface);
+            color: var(--color-text-secondary);
             font-weight: 500;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--color-border);
             padding: 10px var(--space-3);
             font-size: 12px;
             text-align: left;
@@ -327,7 +332,7 @@
 
         .card table.primary tbody td {
             padding: var(--space-3);
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--color-border);
             vertical-align: middle;
         }
 
@@ -371,15 +376,15 @@
             align-items: center;
             margin: 0;
             user-select: none;
-            border: 1px solid var(--border-light);
-            background: var(--bg-surface);
-            color: var(--text-primary);
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            color: var(--color-ink);
         }
 
         .label.male {
-            background-color: var(--accent-light);
-            color: #005bb5;
-            border-color: rgba(0, 102, 204, 0.1);
+            background-color: rgba(91,95,239,0.08);
+            color: var(--color-accent);
+            border-color: rgba(91,95,239,0.15);
         }
 
         .label.female {
@@ -390,7 +395,7 @@
 
         .grade-text {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: var(--color-text-secondary);
             margin-left: 4px;
             font-weight: 400;
         }
@@ -409,20 +414,20 @@
             vertical-align: middle;
             font-weight: 600;
             font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--color-text-secondary);
             white-space: nowrap;
         }
 
         /* ====== ドラッグ＆ドロップ時のアニメーション ====== */
         .sortable-ghost {
             opacity: 0.4;
-            background-color: var(--bg-base);
+            background-color: var(--color-surface);
             border-radius: var(--radius-sm);
         }
 
         .sortable-drag-over {
-            background-color: var(--accent-light);
-            border-color: var(--accent-blue);
+            background-color: rgba(91,95,239,0.08);
+            border-color: var(--color-accent);
         }
 
         /* 重複ペアの常時表示エフェクト */
@@ -472,21 +477,21 @@
             height: 32px;
             border-radius: 8px;
             /* Slightly squarish for icons */
-            border: 1px solid var(--border-light);
-            background: var(--bg-surface);
-            color: var(--text-secondary);
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            color: var(--color-text-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: var(--transition-standard);
             font-size: 14px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-card);
         }
 
         .export-btn:hover {
-            color: var(--accent-blue);
-            background: var(--bg-base);
+            color: var(--color-accent);
+            background: var(--color-bg-alt);
             transform: translateY(-1px);
         }
 
@@ -495,8 +500,8 @@
             bottom: calc(100% + 4px);
             left: 50%;
             transform: translateX(-50%) translateY(4px);
-            background: var(--text-primary);
-            color: var(--bg-surface);
+            background: var(--color-ink);
+            color: var(--color-white);
             padding: 4px 8px;
             border-radius: var(--radius-sm);
             font-size: 11px;
@@ -506,7 +511,7 @@
             opacity: 0;
             transition: var(--transition-standard);
             letter-spacing: 0.02em;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-card);
         }
 
         .export-btn:hover .tooltip {
@@ -532,21 +537,21 @@
         }
 
         .discord-modal {
-            background: var(--bg-surface);
+            background: var(--color-white);
             border-radius: var(--radius-lg);
             padding: var(--space-5);
             width: 90%;
             max-width: 420px;
             box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid var(--border-light);
+            border: 1px solid var(--color-border);
         }
 
         .discord-modal h3 {
             margin: 0 0 var(--space-2);
             font-size: 20px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--color-ink);
             display: flex;
             align-items: center;
             gap: var(--space-2);
@@ -555,7 +560,7 @@
 
         .discord-modal .modal-desc {
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--color-text-secondary);
             margin-bottom: var(--space-4);
             line-height: 1.5;
         }
@@ -563,20 +568,20 @@
         .discord-modal input[type="text"] {
             width: 100%;
             padding: 12px var(--space-3);
-            border: 1px solid var(--border-light);
+            border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             font-size: 15px;
             outline: none;
             transition: var(--transition-standard);
             margin-bottom: var(--space-3);
-            background: var(--bg-base);
-            color: var(--text-primary);
+            background: var(--color-surface);
+            color: var(--color-ink);
         }
 
         .discord-modal input[type="text"]:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
-            background: var(--bg-surface);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(91,95,239,0.12);
+            background: var(--color-white);
         }
 
         .discord-modal-actions {
@@ -598,12 +603,12 @@
         }
 
         .discord-modal-actions .dm-cancel {
-            background: var(--bg-base);
-            color: var(--text-primary);
+            background: var(--color-surface);
+            color: var(--color-ink);
         }
 
         .discord-modal-actions .dm-cancel:hover {
-            background: var(--border-light);
+            background: var(--color-border);
             transform: translateY(-1px);
         }
 
@@ -656,8 +661,8 @@
 
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>🎉 グループ分け結果</h2>
-                <p>日程を選択して切り替え</p>
+                <h2>グループ結果</h2>
+                <p style="margin:4px 0 0; font-size:11px; color:var(--color-text-muted); letter-spacing:0.1em; text-transform:uppercase;">CUCC</p>
             </div>
 
             <div class="sidebar-nav">
