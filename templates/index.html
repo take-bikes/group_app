@@ -518,36 +518,6 @@
             margin-top: 2px;
         }
 
-        .stack-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: var(--space-1);
-            padding: var(--space-2) var(--space-3);
-            background: var(--color-surface);
-            border: none;
-            border-radius: var(--radius-pill);
-            color: var(--color-ink);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition-standard);
-        }
-
-        .stack-toggle-btn:hover {
-            background: #E5E5EA;
-            /* Apple Light Gray */
-            transform: scale(1.02);
-        }
-
-        .stack-toggle-btn .arrow {
-            transition: var(--transition-standard);
-            font-size: 10px;
-        }
-
-        .stack-toggle-btn.open .arrow {
-            transform: rotate(180deg);
-        }
-
         /* ====== スタックコンテナ ====== */
         .stack-container {
             position: relative;
@@ -558,14 +528,7 @@
             cursor: default;
         }
 
-        /* 折りたたみ時: テーブルの高さ制限 + グラデーション */
-        .stack-container:not(.open) .grid-wrapper {
-            max-height: 170px;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        /* 出欠ポップアップボタン */
+/* 出欠ポップアップボタン */
         .att-popup-btn {
             display: inline-flex;
             align-items: center;
@@ -1820,18 +1783,11 @@
                                         <div class="stack-header-count" id="stackCount">総勢 0 名</div>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
-                                    <button type="button" class="stack-toggle-btn" id="stackToggleBtn"
-                                        onclick="toggleMemberStack()">
-                                        <span class="label">展開する</span>
-                                        <span class="arrow">▼</span>
-                                    </button>
-                                </div>
+                                <button type="button" class="btn-text" onclick="addMember()">＋ 1名追加</button>
                             </div>
 
                             <!-- スタックコンテナ -->
-                            <div class="stack-container" id="stackContainer" onclick="handleStackClick(event)">
+                            <div class="stack-container open" id="stackContainer">
                                 <div class="grid-wrapper" id="gridWrapper">
                                     <div class="grid-header" id="headerGrid">
                                         <div class="row-handle">#</div>
@@ -2309,32 +2265,10 @@
         function updateStackUI() {
             const header = document.getElementById('stackHeader');
             const container = document.getElementById('stackContainer');
-            const btn = document.getElementById('stackToggleBtn');
 
             header.classList.add('visible');
             container.style.display = 'block';
             document.getElementById('stackCount').textContent = `総勢 ${members.length} 名のメンバー`;
-
-            if (isStackOpen) {
-                container.classList.add('open');
-                btn.classList.add('open');
-                btn.querySelector('.label').textContent = '折りたたむ';
-            } else {
-                container.classList.remove('open');
-                btn.classList.remove('open');
-                btn.querySelector('.label').textContent = '展開する';
-            }
-        }
-
-        function toggleMemberStack() {
-            isStackOpen = !isStackOpen;
-            render();
-        }
-
-        function handleStackClick(e) {
-            if (!isStackOpen && members.length > 3 && !e.target.closest('.ghost-row, .att-popup-btn, .cell-display, .row-delete-btn')) {
-                toggleMemberStack();
-            }
         }
 
         // テーブルイベント委譲
