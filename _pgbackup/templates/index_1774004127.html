@@ -1734,79 +1734,6 @@
         }
 
         /* Removed colored backgrounds for toasts to maintain minimalist aesthetic */
-
-        /* ====== 名簿管理 拡張UI ====== */
-        .reg-action-btn {
-            padding: 6px 14px; border-radius: var(--radius-pill); font-size: 13px;
-            font-weight: 500; cursor: pointer; border: 1px solid var(--color-border);
-            background: var(--color-white); color: var(--color-ink);
-            transition: var(--transition-standard); white-space: nowrap;
-            display: inline-flex; align-items: center; gap: 4px;
-        }
-        .reg-action-btn:hover { background: var(--color-surface); transform: translateY(-1px); }
-        .reg-action-btn.save { color: #34C759; }
-        .reg-action-btn.promote { color: var(--color-accent); }
-        .reg-action-btn.load { background: var(--color-accent); color: #fff; border-color: transparent; }
-        .reg-action-btn.load:hover { background: var(--color-accent-light); }
-
-        .reg-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
-            gap: var(--space-2); margin-bottom: var(--space-3); flex-wrap: wrap;
-        }
-        .reg-toolbar-left { display: flex; align-items: center; gap: var(--space-2); }
-        .reg-toolbar-right { display: flex; align-items: center; gap: var(--space-2); }
-
-        .registry-table td.editable { cursor: pointer; position: relative; }
-        .registry-table td.editable:hover { background: rgba(91,95,239,0.04); }
-        .registry-table .reg-inline-input {
-            width: 100%; border: none; outline: none; background: transparent;
-            font-size: 14px; font-family: inherit; color: var(--color-ink); padding: 0;
-        }
-        .registry-table .reg-edit-cell {
-            background: rgba(91,95,239,0.06); border-radius: 4px;
-            outline: 2px solid var(--color-accent);
-        }
-        .reg-select {
-            padding: 2px 6px; border: 1px solid var(--color-border);
-            border-radius: 6px; font-size: 13px; background: var(--color-white);
-            color: var(--color-ink); outline: none; font-family: inherit; cursor: pointer;
-        }
-        .reg-select:focus { border-color: var(--color-accent); box-shadow: var(--shadow-focus); }
-        .reg-tool-toggle {
-            cursor: pointer; padding: 2px 8px; border-radius: 6px;
-            transition: var(--transition-standard); user-select: none;
-        }
-        .reg-tool-toggle:hover { background: rgba(91,95,239,0.08); }
-        .reg-cb { width: 16px; height: 16px; accent-color: var(--color-accent); cursor: pointer; }
-        .reg-cb-all { width: 16px; height: 16px; accent-color: var(--color-accent); cursor: pointer; }
-        .registry-table tr.reg-selected { background: rgba(91,95,239,0.06) !important; }
-        .reg-new-row td { border-top: 2px dashed var(--color-border); }
-
-        /* 進級ダイアログ */
-        .promote-flow {
-            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-            padding: 12px; background: var(--color-surface); border-radius: var(--radius-sm);
-        }
-        .promote-step {
-            padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;
-            background: var(--color-white); border: 1px solid var(--color-border); color: var(--color-ink);
-        }
-        .promote-step.grad { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
-        .promote-arrow { color: var(--color-text-muted); font-size: 14px; }
-        .promote-checkbox-label {
-            display: flex; align-items: center; gap: 8px; font-size: 14px;
-            color: var(--color-ink); cursor: pointer;
-        }
-        .promote-checkbox-label input { accent-color: var(--color-accent); width: 16px; height: 16px; }
-
-        .reg-stats {
-            display: flex; gap: var(--space-3); margin-bottom: var(--space-3);
-        }
-        .reg-stat-item {
-            padding: 8px 16px; background: var(--color-surface); border-radius: var(--radius-sm);
-            font-size: 13px; color: var(--color-text-secondary);
-        }
-        .reg-stat-item strong { color: var(--color-ink); font-size: 18px; margin-right: 4px; }
     </style>
 </head>
 
@@ -1989,18 +1916,13 @@
 
     <!-- 名簿管理モーダル -->
     <div class="modal-overlay" id="registryModal">
-        <div class="modal" style="max-width: 960px;">
-            <div class="modal-header" style="flex-wrap: wrap; gap: 8px;">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
                 <h2>📋 メンバー名簿</h2>
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="reg-action-btn load" onclick="loadSelectedToParticipants()" id="regLoadBtn" style="display:none;">
-                        📥 選択を参加者に読み込む (<span id="regSelectedCount">0</span>名)
-                    </button>
-                    <button type="button" class="reg-action-btn save" onclick="saveCurrentMembersToRegistry()">
-                        💾 参加者を名簿に保存
-                    </button>
-                    <button type="button" class="reg-action-btn promote" onclick="openPromoteDialog()">
-                        🎓 一括進級
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="button" class="btn-success" onclick="saveCurrentMembersToRegistry()"
+                        style="padding: 6px 12px; font-size: 13px;">
+                        💾 現在の参加者を名簿に保存
                     </button>
                     <button class="modal-close" onclick="closeRegistry()">×</button>
                 </div>
@@ -2009,38 +1931,6 @@
                 <div class="history-empty">
                     <div class="empty-icon">⏳</div>
                     <p>読み込み中...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 進級確認ダイアログ -->
-    <div class="modal-overlay" id="promoteDialog" style="z-index:2100;">
-        <div class="modal" style="max-width: 480px;">
-            <div class="modal-header">
-                <h2>🎓 学年一括進級</h2>
-                <button class="modal-close" onclick="closePromoteDialog()">×</button>
-            </div>
-            <div class="modal-body" style="padding: 24px;">
-                <p style="font-size: 15px; line-height: 1.8; color: var(--color-ink); margin: 0 0 16px;">
-                    全メンバーの学年を1つ進級させます。
-                </p>
-                <div class="promote-flow">
-                    <span class="promote-step">1年</span><span class="promote-arrow">→</span>
-                    <span class="promote-step">2年</span><span class="promote-arrow">→</span>
-                    <span class="promote-step">3年</span><span class="promote-arrow">→</span>
-                    <span class="promote-step">4年</span><span class="promote-arrow">→</span>
-                    <span class="promote-step">M1</span><span class="promote-arrow">→</span>
-                    <span class="promote-step">M2</span><span class="promote-arrow">→</span>
-                    <span class="promote-step grad">卒業</span>
-                </div>
-                <label class="promote-checkbox-label" style="margin-top: 16px;">
-                    <input type="checkbox" id="promoteDeleteGrad" checked>
-                    M2のメンバーを名簿から削除する（卒業扱い）
-                </label>
-                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
-                    <button class="ht-btn close" onclick="closePromoteDialog()">キャンセル</button>
-                    <button class="ht-btn submit" onclick="executePromotion()">進級を実行</button>
                 </div>
             </div>
         </div>
@@ -2807,19 +2697,12 @@
             }, 3000);
         }
 
-        // ===== 名簿管理 (拡張版) =====
+        // ===== 名簿管理 =====
         const registryModal = document.getElementById('registryModal');
         const registryBody = document.getElementById('registryBody');
-        let regData = []; // 現在の名簿データ
-        let regSelected = new Set(); // 選択中のメンバーID
-        let regEditingCell = null; // {id, field}
-        let regFilter = '';
 
         function openRegistry() {
             registryModal.classList.add('active');
-            regSelected.clear();
-            regEditingCell = null;
-            regFilter = '';
             loadRegistry();
         }
 
@@ -2832,289 +2715,109 @@
         });
 
         async function loadRegistry() {
-            registryBody.innerHTML = '<div class="history-empty"><div class="empty-icon">⏳</div><p>読み込み中...</p></div>';
+            registryBody.innerHTML = `
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
+                </div>`;
+
             try {
                 const res = await fetch('/api/members');
-                regData = await res.json();
-                masterMembersCache = regData;
-                renderRegistry();
+                const data = await res.json();
+                masterMembersCache = data;
+                renderRegistry(data);
             } catch (err) {
-                registryBody.innerHTML = '<div class="history-empty"><div class="empty-icon">❌</div><p>データの読み込みに失敗しました</p></div>';
+                registryBody.innerHTML = `
+                    <div class="history-empty">
+                        <div class="empty-icon">❌</div>
+                        <p>データの読み込みに失敗しました</p>
+                    </div>`;
             }
         }
 
-        function updateRegLoadBtn() {
-            const btn = document.getElementById('regLoadBtn');
-            const countEl = document.getElementById('regSelectedCount');
-            if (regSelected.size > 0) {
-                btn.style.display = '';
-                countEl.textContent = regSelected.size;
-            } else {
-                btn.style.display = 'none';
-            }
-        }
-
-        function renderRegistry() {
-            if (!regData || regData.length === 0) {
-                registryBody.innerHTML = '<div class="history-empty"><div class="empty-icon">📭</div><p>名簿にメンバーが登録されていません。<br>参加者を追加した後、「参加者を名簿に保存」ボタンで登録できます。</p></div>';
-                updateRegLoadBtn();
+        function renderRegistry(data) {
+            if (!data || data.length === 0) {
+                registryBody.innerHTML = `
+                    <div class="registry-actions">
+                        <button class="btn-success" onclick="saveCurrentMembersToRegistry()">💾 現在の参加者を名簿に保存</button>
+                    </div>
+                    <div class="history-empty">
+                        <div class="empty-icon">📭</div>
+                        <p>名簿にメンバーが登録されていません。<br>参加者を追加した後、「現在の参加者を名簿に保存」ボタンで登録できます。</p>
+                    </div>`;
                 return;
             }
 
-            // フィルタ
-            let filtered = regData;
-            if (regFilter) {
-                const q = regFilter.toLowerCase();
-                filtered = regData.filter(m => m.name.toLowerCase().includes(q));
-            }
+            let html = `
+                <div class="registry-actions">
+                    <span class="registry-stats">登録済み: ${data.length}名</span>
+                </div>
+                <table class="registry-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>氏名</th>
+                            <th>学年</th>
+                            <th>性別</th>
+                            <th>工具係</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
-            // 学年別集計
-            const gradeCounts = {};
-            regData.forEach(m => { gradeCounts[m.grade] = (gradeCounts[m.grade] || 0) + 1; });
-
-            let statsHtml = '<div class="reg-stats">';
-            statsHtml += `<div class="reg-stat-item"><strong>${regData.length}</strong>名</div>`;
-            GRADE_OPTIONS.forEach(g => {
-                if (gradeCounts[g]) {
-                    statsHtml += `<div class="reg-stat-item"><strong>${gradeCounts[g]}</strong>${GRADE_MAP[g]}</div>`;
-                }
-            });
-            statsHtml += '</div>';
-
-            let html = statsHtml;
-            html += `<input type="text" class="search-box" placeholder="🔍 名前で検索..." value="${escapeHTML(regFilter)}" oninput="regFilter=this.value; renderRegistry()">`;
-
-            const allIds = filtered.map(m => m.id);
-            const allChecked = allIds.length > 0 && allIds.every(id => regSelected.has(id));
-
-            html += `<table class="registry-table"><thead><tr>
-                <th style="width:36px;"><input type="checkbox" class="reg-cb-all" ${allChecked ? 'checked' : ''} onchange="regToggleAll(this.checked)"></th>
-                <th>#</th><th>氏名</th><th>学年</th><th>性別</th><th>工具係</th><th style="width:36px;"></th>
-            </tr></thead><tbody>`;
-
-            filtered.forEach((m, i) => {
-                const isSelected = regSelected.has(m.id);
-                const isEditing = (field) => regEditingCell && regEditingCell.id === m.id && regEditingCell.field === field;
+            data.forEach((m, i) => {
                 const gradeLabel = GRADE_MAP[m.grade] || m.grade;
                 const genderLabel = GENDER_MAP[m.gender] || m.gender;
-
-                html += `<tr class="${isSelected ? 'reg-selected' : ''}" data-id="${m.id}">`;
-                html += `<td><input type="checkbox" class="reg-cb" ${isSelected ? 'checked' : ''} onchange="regToggleOne(${m.id}, this.checked)"></td>`;
-                html += `<td style="color:#9ca3af;">${i + 1}</td>`;
-
-                // 名前
-                if (isEditing('name')) {
-                    html += `<td class="reg-edit-cell"><input class="reg-inline-input" value="${escapeHTML(m.name)}" data-id="${m.id}" data-field="name" onblur="regSaveCell(this)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){regEditingCell=null;renderRegistry();}" autofocus></td>`;
-                } else {
-                    html += `<td class="editable" style="font-weight:600;" onclick="regStartEdit(${m.id},'name')">${escapeHTML(m.name)}</td>`;
-                }
-
-                // 学年
-                if (isEditing('grade')) {
-                    let opts = GRADE_OPTIONS.map(g => `<option value="${g}" ${m.grade===g?'selected':''}>${GRADE_MAP[g]}</option>`).join('');
-                    html += `<td class="reg-edit-cell"><select class="reg-select" data-id="${m.id}" data-field="grade" onchange="regSaveSelect(this)" onblur="regSaveSelect(this)">${opts}</select></td>`;
-                } else {
-                    html += `<td class="editable" onclick="regStartEdit(${m.id},'grade')">${pillHTML(gradeLabel, m.grade)}</td>`;
-                }
-
-                // 性別
-                if (isEditing('gender')) {
-                    let opts = GENDER_OPTIONS.map(g => `<option value="${g}" ${m.gender===g?'selected':''}>${GENDER_MAP[g]}</option>`).join('');
-                    html += `<td class="reg-edit-cell"><select class="reg-select" data-id="${m.id}" data-field="gender" onchange="regSaveSelect(this)" onblur="regSaveSelect(this)">${opts}</select></td>`;
-                } else {
-                    html += `<td class="editable" onclick="regStartEdit(${m.id},'gender')">${pillHTML(genderLabel, m.gender)}</td>`;
-                }
-
-                // 工具係
-                html += `<td><span class="reg-tool-toggle" onclick="regToggleTool(${m.id})">${m.is_tool ? '🔧' : '<span style="color:#d1d5db;">―</span>'}</span></td>`;
-
-                // 削除
-                html += `<td><span class="registry-delete-btn" onclick="deleteRegistryMember(${m.id})">×</span></td>`;
-                html += '</tr>';
+                html += `
+                    <tr>
+                        <td style="color:#9ca3af;">${i + 1}</td>
+                        <td style="font-weight:600;">${escapeHTML(m.name)}</td>
+                        <td>${pillHTML(gradeLabel, m.grade)}</td>
+                        <td>${pillHTML(genderLabel, m.gender)}</td>
+                        <td>${m.is_tool ? pillHTML('🔧', 'tool') : '<span style="color:#d1d5db;">―</span>'}</td>
+                        <td><span class="registry-delete-btn" onclick="deleteRegistryMember(${m.id})">×</span></td>
+                    </tr>`;
             });
-
-            // 新規追加行
-            html += `<tr class="reg-new-row">
-                <td></td><td style="color:#9ca3af;">+</td>
-                <td colspan="5"><span style="color:var(--color-accent);cursor:pointer;font-size:14px;font-weight:500;" onclick="regAddNewMember()">＋ 新しいメンバーを追加...</span></td>
-            </tr>`;
 
             html += '</tbody></table>';
             registryBody.innerHTML = html;
-            updateRegLoadBtn();
-
-            // フォーカス
-            requestAnimationFrame(() => {
-                const input = registryBody.querySelector('.reg-inline-input');
-                if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
-                const sel = registryBody.querySelector('.reg-edit-cell select');
-                if (sel) sel.focus();
-            });
-        }
-
-        function regStartEdit(id, field) {
-            regEditingCell = { id, field };
-            renderRegistry();
-        }
-
-        async function regSaveCell(input) {
-            const id = parseInt(input.dataset.id);
-            const field = input.dataset.field;
-            const value = input.value.trim();
-            if (!value) { regEditingCell = null; renderRegistry(); return; }
-            try {
-                await fetch(`/api/members/${id}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [field]: value })
-                });
-                const m = regData.find(x => x.id === id);
-                if (m) m[field] = value;
-                masterMembersCache = null;
-            } catch (e) { showToast('更新に失敗しました', 'error'); }
-            regEditingCell = null;
-            renderRegistry();
-        }
-
-        async function regSaveSelect(sel) {
-            const id = parseInt(sel.dataset.id);
-            const field = sel.dataset.field;
-            const value = sel.value;
-            try {
-                await fetch(`/api/members/${id}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [field]: value })
-                });
-                const m = regData.find(x => x.id === id);
-                if (m) m[field] = value;
-                masterMembersCache = null;
-            } catch (e) { showToast('更新に失敗しました', 'error'); }
-            regEditingCell = null;
-            renderRegistry();
-        }
-
-        async function regToggleTool(id) {
-            const m = regData.find(x => x.id === id);
-            if (!m) return;
-            const newVal = !m.is_tool;
-            try {
-                await fetch(`/api/members/${id}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ is_tool: newVal })
-                });
-                m.is_tool = newVal;
-                masterMembersCache = null;
-                renderRegistry();
-            } catch (e) { showToast('更新に失敗しました', 'error'); }
-        }
-
-        async function regAddNewMember() {
-            try {
-                const res = await fetch('/api/members', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: '新しいメンバー', grade: '1', gender: 'M', is_tool: false })
-                });
-                masterMembersCache = null;
-                await loadRegistry();
-                // 追加されたメンバーの名前を即編集
-                const newMember = regData[regData.length - 1];
-                if (newMember) { regStartEdit(newMember.id, 'name'); }
-            } catch (e) { showToast('追加に失敗しました', 'error'); }
-        }
-
-        // チェックボックス制御
-        function regToggleOne(id, checked) {
-            if (checked) regSelected.add(id); else regSelected.delete(id);
-            renderRegistry();
-        }
-        function regToggleAll(checked) {
-            const filtered = regFilter
-                ? regData.filter(m => m.name.toLowerCase().includes(regFilter.toLowerCase()))
-                : regData;
-            filtered.forEach(m => { if (checked) regSelected.add(m.id); else regSelected.delete(m.id); });
-            renderRegistry();
-        }
-
-        // 名簿から参加者に読み込む
-        function loadSelectedToParticipants() {
-            const selectedMembers = regData.filter(m => regSelected.has(m.id));
-            if (selectedMembers.length === 0) { showToast('メンバーを選択してください', 'error'); return; }
-
-            const existingNames = new Set(members.map(m => m.name));
-            let added = 0;
-            const numDays = getNumDays();
-            selectedMembers.forEach(m => {
-                if (!existingNames.has(m.name)) {
-                    members.push({
-                        name: m.name, grade: m.grade, gender: m.gender,
-                        is_tool: m.is_tool, attendance: new Array(numDays).fill(true)
-                    });
-                    added++;
-                }
-            });
-
-            if (added > 0) {
-                render();
-                showToast(`${added}名を参加者に追加しました`, 'success');
-            } else {
-                showToast('選択されたメンバーは既に参加者一覧にいます', 'info');
-            }
-            closeRegistry();
         }
 
         async function deleteRegistryMember(id) {
             try {
                 await fetch(`/api/members/${id}`, { method: 'DELETE' });
-                regData = regData.filter(m => m.id !== id);
-                regSelected.delete(id);
-                masterMembersCache = null;
-                renderRegistry();
+                masterMembersCache = null; // キャッシュクリア
+                loadRegistry();
                 showToast('名簿から削除しました', 'info');
-            } catch (err) { showToast('削除に失敗しました', 'error'); }
+            } catch (err) {
+                showToast('削除に失敗しました', 'error');
+            }
         }
 
         async function saveCurrentMembersToRegistry() {
             const validMembers = members.filter(m => m.name && m.name.trim());
-            if (validMembers.length === 0) { showToast('保存する参加者がいません', 'error'); return; }
+            if (validMembers.length === 0) {
+                showToast('保存する参加者がいません', 'error');
+                return;
+            }
+
             try {
                 const res = await fetch('/api/members/bulk', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ members: validMembers })
                 });
                 const result = await res.json();
-                masterMembersCache = null;
+                masterMembersCache = null; // キャッシュクリア
                 showToast(`名簿に保存しました（新規: ${result.added}名, 更新: ${result.updated}名）`, 'success');
-                if (registryModal.classList.contains('active')) loadRegistry();
-            } catch (err) { showToast('保存に失敗しました', 'error'); }
-        }
 
-        // ===== 進級ダイアログ =====
-        function openPromoteDialog() {
-            document.getElementById('promoteDialog').classList.add('active');
-        }
-        function closePromoteDialog() {
-            document.getElementById('promoteDialog').classList.remove('active');
-        }
-        document.getElementById('promoteDialog').addEventListener('click', (e) => {
-            if (e.target.id === 'promoteDialog') closePromoteDialog();
-        });
-
-        async function executePromotion() {
-            const deleteGrad = document.getElementById('promoteDeleteGrad').checked;
-            try {
-                const res = await fetch('/api/members/promote', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ delete_graduated: deleteGrad })
-                });
-                const result = await res.json();
-                masterMembersCache = null;
-                let msg = `${result.promoted}名を進級しました`;
-                if (result.graduated > 0) {
-                    msg += `（卒業: ${result.graduated_names.join(', ')}）`;
+                // モーダルが開いていたら再読み込み
+                if (registryModal.classList.contains('active')) {
+                    loadRegistry();
                 }
-                showToast(msg, 'success');
-                closePromoteDialog();
-                loadRegistry();
-            } catch (err) { showToast('進級処理に失敗しました', 'error'); }
+            } catch (err) {
+                showToast('保存に失敗しました', 'error');
+            }
         }
 
 

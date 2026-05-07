@@ -307,6 +307,62 @@ def api_members_reset():
     db.session.commit()
     return jsonify({'status': 'ok'})
 
+@app.route('/api/members/<int:member_id>', methods=['PUT'])
+def api_members_update(member_id):
+    """メンバー情報を更新"""
+    member = MemberMaster.query.get(member_id)
+    if not member:
+        return jsonify({'error': '見つかりません'}), 404
+    data = request.get_json()
+    if 'name' in data:
+        new_name = data['name'].strip()
+        if new_name:
+            member.name = new_name
+    if 'grade' in data:
+        member.grade = data['grade']
+    if 'gender' in data:
+        member.gender = data['gender']
+    if 'is_tool' in data:
+        member.is_tool = data['is_tool']
+    db.session.commit()
+    return jsonify({'status': 'ok', 'member': {
+        'id': member.id,
+        'name': member.name,
+        'grade': member.grade,
+        'gender': member.gender,
+        'is_tool': member.is_tool
+    }})
+
+@app.route('/api/members/promote', methods=['POST'])
+def api_members_promote():
+    """学年を一括進級（1→2→3→4→M1→M2→卒業）"""
+    data = request.get_json() or {}
+    delete_graduated = data.get('delete_graduated', False)
+
+    promotion_map = {'1': '2', '2': '3', '3': '4', '4': 'M1', 'M1': 'M2'}
+    members = MemberMaster.query.all()
+    promoted = 0
+    graduated = 0
+    graduated_names = []
+
+    for m in members:
+        if m.grade == 'M2':
+            graduated += 1
+            graduated_names.append(m.name)
+            if delete_graduated:
+                db.session.delete(m)
+        elif m.grade in promotion_map:
+            m.grade = promotion_map[m.grade]
+            promoted += 1
+
+    db.session.commit()
+    return jsonify({
+        'status': 'ok',
+        'promoted': promoted,
+        'graduated': graduated,
+        'graduated_names': graduated_names
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)
     
