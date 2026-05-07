@@ -259,7 +259,8 @@ def api_members_add():
         )
         db.session.add(new_member)
     db.session.commit()
-    return jsonify({'status': 'ok'})
+    member = existing if existing else new_member
+    return jsonify({'status': 'ok', 'id': member.id})
 
 @app.route('/api/members/bulk', methods=['POST'])
 def api_members_bulk_add():
