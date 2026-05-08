@@ -290,6 +290,13 @@
             box-shadow: var(--shadow-card);
         }
 
+        .info-pill.swap-btn.active {
+            background: #FF9500;
+            color: white;
+            border-color: #FF9500;
+            box-shadow: 0 0 8px rgba(255, 149, 0, 0.4);
+        }
+
         .info-pill i {
             color: var(--color-text-secondary);
         }
@@ -365,6 +372,13 @@
 
         .person-wrapper:active {
             cursor: grabbing;
+        }
+
+        .person-wrapper.swap-selected .label {
+            box-shadow: 0 0 0 3px #FF9500;
+            border-color: #FF9500;
+            transform: scale(1.05);
+            z-index: 10;
         }
 
         .label {
@@ -719,6 +733,9 @@
                             </button>
                         </div>
                         <div class="info-pills">
+                            <span class="info-pill swap-btn" id="swapBtn-{{ day.day }}" onclick="toggleResultSwapMode('{{ day.day }}')" style="cursor: pointer;">
+                                🔄 入れ替え: OFF
+                            </span>
                             <span class="info-pill">
                                 <i class="fas fa-hand-pointer"></i> ドラッグで移動可能
                             </span>
@@ -757,7 +774,8 @@
 
                                         <div class="person-wrapper" data-name="{{ person.name }}"
                                             data-grade="{{ person.grade }}" data-gender="{{ person.gender }}"
-                                            data-tool="{{ 'true' if person.is_tool else 'false' }}">
+                                            data-tool="{{ 'true' if person.is_tool else 'false' }}"
+                                            onclick="handleResultPersonClick(this)">
 
                                             <span class="label {{ 'female' if is_female else 'male' }}">
                                                 {% if person.is_tool %}<i class="fas fa-wrench"
@@ -1209,6 +1227,85 @@
             } catch (err) {
                 statusEl.textContent = `❌ ネットワークエラー: ${err.message}`;
                 statusEl.className = 'discord-status error';
+            }
+        }
+
+        // ====== 入れ替え（Swap）機能 ======
+        let isResultSwapMode = false;
+        let resultSwapSource = null;
+        let currentSwapDay = null;
+
+        function toggleResultSwapMode(dayStr) {
+            const btn = document.getElementById(`swapBtn-${dayStr}`);
+            
+            // もし違う日のタブでモードを切り替えたら、状態をリセットする
+            if (currentSwapDay && currentSwapDay !== dayStr) {
+                isResultSwapMode = false;
+                if (resultSwapSource) {
+                    resultSwapSource.classList.remove('swap-selected');
+                    resultSwapSource = null;
+                }
+                const oldBtn = document.getElementById(`swapBtn-${currentSwapDay}`);
+                if (oldBtn) {
+                    oldBtn.classList.remove('active');
+                    oldBtn.innerHTML = '🔄 入れ替え: OFF';
+                }
+            }
+            
+            currentSwapDay = dayStr;
+            isResultSwapMode = !isResultSwapMode;
+            
+            if (isResultSwapMode) {
+                btn.classList.add('active');
+                btn.innerHTML = '🔄 入れ替え: ON';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '🔄 入れ替え: OFF';
+                if (resultSwapSource) {
+                    resultSwapSource.classList.remove('swap-selected');
+                    resultSwapSource = null;
+                }
+            }
+        }
+
+        function handleResultPersonClick(el) {
+            if (!isResultSwapMode) return;
+            
+            // swapSourceが未選択の場合はセット
+            if (!resultSwapSource) {
+                resultSwapSource = el;
+                el.classList.add('swap-selected');
+            } else {
+                // 同じ要素をクリックした場合は解除
+                if (resultSwapSource === el) {
+                    el.classList.remove('swap-selected');
+                    resultSwapSource = null;
+                    return;
+                }
+                
+                // 異なる要素の場合は入れ替え実行
+                const parent1 = resultSwapSource.parentElement;
+                const parent2 = el.parentElement;
+                const next1 = resultSwapSource.nextSibling;
+                const next2 = el.nextSibling;
+
+                if (next2 === resultSwapSource) {
+                    parent2.insertBefore(resultSwapSource, el);
+                } else {
+                    parent2.insertBefore(resultSwapSource, next2);
+                    parent1.insertBefore(el, next1);
+                }
+
+                resultSwapSource.classList.remove('swap-selected');
+                resultSwapSource = null;
+
+                // 各リストを学年順に再ソート
+                if (parent1) sortMembersList(parent1);
+                if (parent2 && parent2 !== parent1) sortMembersList(parent2);
+
+                // UI更新とデータ同期
+                updateAllDuplicateBadges();
+                updateScheduleInput();
             }
         }
     </script>
