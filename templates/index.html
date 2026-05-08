@@ -3282,8 +3282,8 @@
 
             // 新規作成フォーム
             html += `<div class="event-create-row">
-                <input type="text" id="newEventName" placeholder="新しい企画名を入力（例: 春合宿2026）" onkeydown="if(event.key==='Enter')createEvent()">
-                <button class="reg-action-btn save" onclick="createEvent()" style="white-space:nowrap;">＋ 新規作成</button>
+                <input type="text" id="newEventName" placeholder="新しい企画名を入力（例: 春合宿2026）" onkeydown="if(event.key==='Enter'){event.preventDefault();createEvent();}">
+                <button type="button" class="reg-action-btn save" onclick="createEvent()" style="white-space:nowrap;">＋ 新規作成</button>
             </div>`;
 
             if (eventsList.length === 0) {
@@ -3313,19 +3313,43 @@
             html += '</div>';
 
             eventBody.innerHTML = html;
+            attachEventCreateListeners();
+        }
+
+        function attachEventCreateListeners() {
+            const btn = document.getElementById('btnCreateEvent');
+            const input = document.getElementById('newEventName');
+            if (btn) {
+                btn.addEventListener('click', createEvent);
+            }
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        createEvent();
+                    }
+                });
+            }
         }
 
         async function createEvent() {
-            const input = document.getElementById('newEventName');
-            const name = input.value.trim();
-            if (!name) { showToast('企画名を入力してください', 'error'); return; }
-
-            // 現在の参加者と設定を保存
-            const validMembers = members.filter(m => m.name && m.name.trim());
-            const numDays = getNumDays();
-            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
-
             try {
+                console.log("createEvent function started");
+                const input = document.getElementById('newEventName');
+                if (!input) { alert("input is null"); return; }
+                const name = input.value.trim();
+                console.log("Name:", name);
+                if (!name) { showToast('企画名を入力してください', 'error'); return; }
+
+                // 現在の参加者と設定を保存
+                console.log("Filtering members", members);
+                const validMembers = members.filter(m => m.name && m.name.trim());
+                console.log("Getting numDays");
+                const numDays = getNumDays();
+                console.log("Getting numGroups");
+                const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+
+                console.log("Fetching API");
                 const res = await fetch('/api/events', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3342,7 +3366,11 @@
                 updateEventIndicator(name);
                 showToast(`企画「${name}」を作成しました`, 'success');
                 loadEvents();
-            } catch (err) { showToast('作成に失敗しました', 'error'); }
+            } catch (err) { 
+                alert("Error in createEvent: " + err.message);
+                console.error(err);
+                showToast('作成に失敗しました: ' + err.message, 'error'); 
+            }
         }
 
         async function loadEvent(id) {
