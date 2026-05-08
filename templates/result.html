@@ -693,6 +693,12 @@
             </div>
 
             <div class="sidebar-actions">
+                <button type="button" class="sidebar-btn" onclick="undoResult()" id="undoBtn" style="opacity: 0.5; pointer-events: none;">
+                    <i class="fas fa-undo"></i> 元に戻す
+                </button>
+                <button type="button" class="sidebar-btn" onclick="redoResult()" id="redoBtn" style="opacity: 0.5; pointer-events: none;">
+                    <i class="fas fa-redo"></i> やり直し
+                </button>
                 <a href="/" class="sidebar-btn back">
                     <i class="fas fa-arrow-left"></i> 戻ってやり直す
                 </a>
@@ -948,6 +954,7 @@
             updateScheduleData();
             updateDuplicateCounts();
             refreshAllDuplicateMarkers();
+            saveResultState();
         }
 
         // 全日程の重複マーカーを再計算して付け直す
@@ -1304,10 +1311,108 @@
                 if (parent2 && parent2 !== parent1) sortMembersList(parent2);
 
                 // UI更新とデータ同期
-                updateAllDuplicateBadges();
-                updateScheduleInput();
+                updateScheduleData();
+                updateDuplicateCounts();
+                refreshAllDuplicateMarkers();
+                saveResultState();
             }
         }
+
+        // ====== Undo / Redo 機能 ======
+        let resultUndoStack = [];
+        let resultRedoStack = [];
+
+        function captureResultState() {
+            const state = {};
+            document.querySelectorAll('.card').forEach(card => {
+                const dayStr = card.dataset.day;
+                state[dayStr] = [];
+                card.querySelectorAll('.members-list').forEach(list => {
+                    const members = Array.from(list.children).map(el => el.dataset.name);
+                    state[dayStr].push(members);
+                });
+            });
+            return state;
+        }
+
+        function restoreResultState(state) {
+            for (const [dayStr, groups] of Object.entries(state)) {
+                const card = document.querySelector(`.card[data-day="${dayStr}"]`);
+                if (!card) continue;
+
+                const dayPersonMap = {};
+                card.querySelectorAll('.person-wrapper').forEach(pw => {
+                    dayPersonMap[pw.dataset.name] = pw;
+                });
+
+                const lists = card.querySelectorAll('.members-list');
+                groups.forEach((members, idx) => {
+                    if (lists[idx]) {
+                        members.forEach(name => {
+                            if (dayPersonMap[name]) {
+                                lists[idx].appendChild(dayPersonMap[name]);
+                            }
+                        });
+                        sortMembersList(lists[idx]);
+                    }
+                });
+            }
+            updateScheduleData();
+            updateDuplicateCounts();
+            refreshAllDuplicateMarkers();
+            updateUndoRedoButtons();
+        }
+
+        function saveResultState() {
+            resultUndoStack.push(captureResultState());
+            resultRedoStack = [];
+            updateUndoRedoButtons();
+        }
+
+        function undoResult() {
+            if (resultUndoStack.length <= 1) return; // 初期状態は残す
+            const current = resultUndoStack.pop();
+            resultRedoStack.push(current);
+            const prev = resultUndoStack[resultUndoStack.length - 1];
+            restoreResultState(prev);
+        }
+
+        function redoResult() {
+            if (resultRedoStack.length === 0) return;
+            const next = resultRedoStack.pop();
+            resultUndoStack.push(next);
+            restoreResultState(next);
+        }
+
+        function updateUndoRedoButtons() {
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            if (undoBtn) {
+                undoBtn.style.opacity = resultUndoStack.length > 1 ? '1' : '0.5';
+                undoBtn.style.pointerEvents = resultUndoStack.length > 1 ? 'auto' : 'none';
+            }
+            if (redoBtn) {
+                redoBtn.style.opacity = resultRedoStack.length > 0 ? '1' : '0.5';
+                redoBtn.style.pointerEvents = resultRedoStack.length > 0 ? 'auto' : 'none';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undoResult();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                e.preventDefault();
+                redoResult();
+            }
+        });
+
+        // 初期状態を保存
+        document.addEventListener('DOMContentLoaded', () => {
+            saveResultState();
+        });
     </script>
 </body>
 
