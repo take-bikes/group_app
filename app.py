@@ -31,6 +31,17 @@ class MemberMaster(db.Model):
     gender = db.Column(db.String(10), nullable=False, default='M')
     is_tool = db.Column(db.Boolean, default=False)
 
+# 企画（イベント）: 企画名と参加メンバーを保存
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    date = db.Column(db.String(20), default='')  # YYYY-MM-DD など自由形式
+    participants_json = db.Column(db.Text, default='[]')  # JSON: [{name, grade, gender, is_tool}, ...]
+    num_days = db.Column(db.Integer, default=3)
+    num_groups = db.Column(db.Integer, default=4)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
 # アプリ起動時にデータベースファイルがなければ作成する
 with app.app_context():
     db.create_all()
@@ -363,6 +374,79 @@ def api_members_promote():
         'graduated': graduated,
         'graduated_names': graduated_names
     })
+
+# ===== 企画管理 API =====
+@app.route('/api/events', methods=['GET'])
+def api_events_list():
+    """企画一覧を取得"""
+    events = Event.query.order_by(Event.updated_at.desc()).all()
+    return jsonify([{
+        'id': e.id, 'name': e.name, 'date': e.date,
+        'participant_count': len(json.loads(e.participants_json or '[]')),
+        'num_days': e.num_days, 'num_groups': e.num_groups,
+        'created_at': str(e.created_at) if e.created_at else '',
+        'updated_at': str(e.updated_at) if e.updated_at else ''
+    } for e in events])
+
+@app.route('/api/events', methods=['POST'])
+def api_events_create():
+    """企画を新規作成"""
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': '企画名が必要です'}), 400
+    event = Event(
+        name=name,
+        date=data.get('date', ''),
+        participants_json=json.dumps(data.get('participants', []), ensure_ascii=False),
+        num_days=data.get('num_days', 3),
+        num_groups=data.get('num_groups', 4)
+    )
+    db.session.add(event)
+    db.session.commit()
+    return jsonify({'status': 'ok', 'id': event.id})
+
+@app.route('/api/events/<int:event_id>', methods=['GET'])
+def api_events_get(event_id):
+    """企画の詳細（参加者リスト含む）を取得"""
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'error': '見つかりません'}), 404
+    return jsonify({
+        'id': event.id, 'name': event.name, 'date': event.date,
+        'participants': json.loads(event.participants_json or '[]'),
+        'num_days': event.num_days, 'num_groups': event.num_groups
+    })
+
+@app.route('/api/events/<int:event_id>', methods=['PUT'])
+def api_events_update(event_id):
+    """企画を更新（参加者リスト・設定を保存）"""
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'error': '見つかりません'}), 404
+    data = request.get_json()
+    if 'name' in data:
+        event.name = data['name'].strip()
+    if 'date' in data:
+        event.date = data['date']
+    if 'participants' in data:
+        event.participants_json = json.dumps(data['participants'], ensure_ascii=False)
+    if 'num_days' in data:
+        event.num_days = data['num_days']
+    if 'num_groups' in data:
+        event.num_groups = data['num_groups']
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/events/<int:event_id>', methods=['DELETE'])
+def api_events_delete(event_id):
+    """企画を削除"""
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'error': '見つかりません'}), 404
+    db.session.delete(event)
+    db.session.commit()
+    return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True)

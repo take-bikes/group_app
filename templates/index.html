@@ -1807,6 +1807,65 @@
             font-size: 13px; color: var(--color-text-secondary);
         }
         .reg-stat-item strong { color: var(--color-ink); font-size: 18px; margin-right: 4px; }
+
+        /* ====== 企画管理 ====== */
+        .event-list { display: flex; flex-direction: column; gap: var(--space-2); }
+        .event-card {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; background: var(--color-white);
+            border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+            cursor: pointer; transition: var(--transition-standard);
+        }
+        .event-card:hover {
+            border-color: var(--color-accent); background: rgba(91,95,239,0.03);
+            transform: translateY(-1px); box-shadow: var(--shadow-card);
+        }
+        .event-card.active { border-color: var(--color-accent); background: rgba(91,95,239,0.06); }
+        .event-card-left { display: flex; flex-direction: column; gap: 2px; }
+        .event-card-name { font-weight: 600; font-size: 15px; color: var(--color-ink); }
+        .event-card-meta { font-size: 12px; color: var(--color-text-secondary); display: flex; gap: 8px; }
+        .event-card-right { display: flex; align-items: center; gap: var(--space-2); }
+        .event-card-count {
+            padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+            background: rgba(91,95,239,0.08); color: var(--color-accent);
+        }
+        .event-delete-btn {
+            color: transparent; cursor: pointer; font-size: 16px; padding: 4px;
+            border-radius: 4px; transition: var(--transition-standard);
+        }
+        .event-card:hover .event-delete-btn { color: var(--color-text-secondary); }
+        .event-delete-btn:hover { color: #ef4444 !important; background: #fef2f2; }
+        .event-empty { text-align: center; padding: 32px; color: var(--color-text-secondary); }
+        .event-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .event-create-row {
+            display: flex; gap: var(--space-2); margin-bottom: var(--space-3);
+        }
+        .event-create-row input {
+            flex: 1; padding: 10px 14px; border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+            color: var(--color-ink); outline: none; transition: var(--transition-standard);
+        }
+        .event-create-row input:focus { border-color: var(--color-accent); box-shadow: var(--shadow-focus); }
+        .event-indicator {
+            display: none; align-items: center; gap: var(--space-2);
+            padding: 8px 16px; background: rgba(91,95,239,0.06);
+            border: 1px solid rgba(91,95,239,0.15); border-radius: var(--radius-sm);
+            margin-bottom: var(--space-3); font-size: 13px; color: var(--color-accent);
+        }
+        .event-indicator.visible { display: flex; }
+        .event-indicator-name { font-weight: 600; }
+        .event-indicator-actions { margin-left: auto; display: flex; gap: var(--space-2); }
+        .event-indicator-btn {
+            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+            cursor: pointer; border: 1px solid rgba(91,95,239,0.2);
+            background: var(--color-white); color: var(--color-accent);
+            transition: var(--transition-standard);
+        }
+        .event-indicator-btn:hover { background: var(--color-accent); color: #fff; }
+        .event-indicator-btn.save { background: var(--color-accent); color: #fff; border-color: transparent; }
+        .event-indicator-btn.save:hover { background: var(--color-accent-light); }
+        .event-indicator-btn.close { color: var(--color-text-secondary); border-color: var(--color-border); }
+        .event-indicator-btn.close:hover { color: #ef4444; border-color: #ef4444; }
     </style>
 </head>
 
@@ -1821,6 +1880,10 @@
                 <button class="sidebar-btn" onclick="openRegistry()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
                     名簿の管理
+                </button>
+                <button class="sidebar-btn" onclick="openEventModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
+                    企画の管理
                 </button>
                 <button class="sidebar-btn" onclick="openHistory()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
@@ -1845,6 +1908,16 @@
                             <div class="paste-zone" onclick="document.getElementById('pasteInput').focus()">
                                 <textarea id="pasteInput"
                                     placeholder="ここにExcelやCSVのデータを貼り付けてください（名前, 学年, 性別）"></textarea>
+                            </div>
+
+                            <!-- 企画インジケーター -->
+                            <div class="event-indicator" id="eventIndicator">
+                                <span>📅</span>
+                                <span class="event-indicator-name" id="eventIndicatorName"></span>
+                                <div class="event-indicator-actions">
+                                    <button type="button" class="event-indicator-btn save" onclick="saveCurrentEvent()">💾 上書き保存</button>
+                                    <button type="button" class="event-indicator-btn close" onclick="closeCurrentEvent()">✕ 閉じる</button>
+                                </div>
                             </div>
 
                             <!-- スタックヘッダー -->
@@ -2041,6 +2114,22 @@
                 <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
                     <button class="ht-btn close" onclick="closePromoteDialog()">キャンセル</button>
                     <button class="ht-btn submit" onclick="executePromotion()">進級を実行</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 企画管理モーダル -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>📅 企画管理</h2>
+                <button class="modal-close" onclick="closeEventModal()">×</button>
+            </div>
+            <div class="modal-body" id="eventBody" style="padding: 20px;">
+                <div class="history-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>読み込み中...</p>
                 </div>
             </div>
         </div>
@@ -3159,6 +3248,177 @@
             } catch (err) { showToast('進級処理に失敗しました', 'error'); }
         }
 
+
+        // ===== 企画管理 =====
+        const eventModal = document.getElementById('eventModal');
+        const eventBody = document.getElementById('eventBody');
+        let currentEventId = null; // 現在ロード中の企画ID
+        let eventsList = [];
+
+        function openEventModal() {
+            eventModal.classList.add('active');
+            loadEvents();
+        }
+        function closeEventModal() {
+            eventModal.classList.remove('active');
+        }
+        eventModal.addEventListener('click', (e) => {
+            if (e.target === eventModal) closeEventModal();
+        });
+
+        async function loadEvents() {
+            eventBody.innerHTML = '<div class="history-empty"><div class="empty-icon">⏳</div><p>読み込み中...</p></div>';
+            try {
+                const res = await fetch('/api/events');
+                eventsList = await res.json();
+                renderEvents();
+            } catch (err) {
+                eventBody.innerHTML = '<div class="history-empty"><div class="empty-icon">❌</div><p>読み込みに失敗しました</p></div>';
+            }
+        }
+
+        function renderEvents() {
+            let html = '';
+
+            // 新規作成フォーム
+            html += `<div class="event-create-row">
+                <input type="text" id="newEventName" placeholder="新しい企画名を入力（例: 春合宿2026）" onkeydown="if(event.key==='Enter')createEvent()">
+                <button class="reg-action-btn save" onclick="createEvent()" style="white-space:nowrap;">＋ 新規作成</button>
+            </div>`;
+
+            if (eventsList.length === 0) {
+                html += '<div class="event-empty"><div class="event-empty-icon">📅</div><p>企画がまだ登録されていません。<br>企画名を入力して「新規作成」で登録しましょう。</p></div>';
+                eventBody.innerHTML = html;
+                return;
+            }
+
+            html += '<div class="event-list">';
+            eventsList.forEach(e => {
+                const isActive = currentEventId === e.id;
+                const dateStr = e.date || '';
+                html += `<div class="event-card ${isActive ? 'active' : ''}" onclick="loadEvent(${e.id})">
+                    <div class="event-card-left">
+                        <div class="event-card-name">${escapeHTML(e.name)}</div>
+                        <div class="event-card-meta">
+                            ${dateStr ? `<span>📅 ${escapeHTML(dateStr)}</span>` : ''}
+                            <span>${e.num_days}日 / ${e.num_groups}班</span>
+                        </div>
+                    </div>
+                    <div class="event-card-right">
+                        <span class="event-card-count">${e.participant_count}名</span>
+                        <span class="event-delete-btn" onclick="event.stopPropagation(); deleteEvent(${e.id}, '${escapeHTML(e.name)}')">×</span>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+
+            eventBody.innerHTML = html;
+        }
+
+        async function createEvent() {
+            const input = document.getElementById('newEventName');
+            const name = input.value.trim();
+            if (!name) { showToast('企画名を入力してください', 'error'); return; }
+
+            // 現在の参加者と設定を保存
+            const validMembers = members.filter(m => m.name && m.name.trim());
+            const numDays = getNumDays();
+            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+
+            try {
+                const res = await fetch('/api/events', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        participants: validMembers.map(m => ({
+                            name: m.name, grade: m.grade, gender: m.gender, is_tool: m.is_tool
+                        })),
+                        num_days: numDays,
+                        num_groups: numGroups
+                    })
+                });
+                const result = await res.json();
+                currentEventId = result.id;
+                updateEventIndicator(name);
+                showToast(`企画「${name}」を作成しました`, 'success');
+                loadEvents();
+            } catch (err) { showToast('作成に失敗しました', 'error'); }
+        }
+
+        async function loadEvent(id) {
+            try {
+                const res = await fetch(`/api/events/${id}`);
+                const data = await res.json();
+
+                // 参加者をロード
+                members = [];
+                const numDays = data.num_days || 3;
+                const numGroups = data.num_groups || 4;
+                (data.participants || []).forEach(p => {
+                    members.push({
+                        name: p.name, grade: p.grade, gender: p.gender,
+                        is_tool: p.is_tool || false,
+                        attendance: new Array(numDays).fill(true)
+                    });
+                });
+
+                // 設定を復元
+                document.getElementById('numDaysRange').value = numDays;
+                document.getElementById('numDaysInput').value = numDays;
+                document.getElementById('numDaysValue').textContent = numDays;
+                document.getElementById('numGroupsRange').value = numGroups;
+                document.getElementById('numGroupsInput').value = numGroups;
+                document.getElementById('numGroupsValue').textContent = numGroups;
+
+                currentEventId = id;
+                updateEventIndicator(data.name);
+                render();
+                closeEventModal();
+                showToast(`「${data.name}」を読み込みました（${members.length}名）`, 'success');
+            } catch (err) { showToast('読み込みに失敗しました', 'error'); }
+        }
+
+        async function saveCurrentEvent() {
+            if (!currentEventId) return;
+            const validMembers = members.filter(m => m.name && m.name.trim());
+            const numDays = getNumDays();
+            const numGroups = parseInt(document.getElementById('numGroupsInput').value);
+
+            try {
+                await fetch(`/api/events/${currentEventId}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        participants: validMembers.map(m => ({
+                            name: m.name, grade: m.grade, gender: m.gender, is_tool: m.is_tool
+                        })),
+                        num_days: numDays,
+                        num_groups: numGroups
+                    })
+                });
+                showToast('企画を上書き保存しました', 'success');
+            } catch (err) { showToast('保存に失敗しました', 'error'); }
+        }
+
+        function closeCurrentEvent() {
+            currentEventId = null;
+            document.getElementById('eventIndicator').classList.remove('visible');
+        }
+
+        function updateEventIndicator(name) {
+            const indicator = document.getElementById('eventIndicator');
+            document.getElementById('eventIndicatorName').textContent = name;
+            indicator.classList.add('visible');
+        }
+
+        async function deleteEvent(id, name) {
+            if (!confirm(`「${name}」を削除しますか？`)) return;
+            try {
+                await fetch(`/api/events/${id}`, { method: 'DELETE' });
+                if (currentEventId === id) closeCurrentEvent();
+                showToast(`「${name}」を削除しました`, 'info');
+                loadEvents();
+            } catch (err) { showToast('削除に失敗しました', 'error'); }
+        }
 
 
         // ===== 履歴モーダル機能 =====
