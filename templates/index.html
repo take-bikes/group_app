@@ -992,6 +992,19 @@
             background: var(--color-surface);
         }
 
+        .ht-btn.swap {
+            background: var(--color-surface);
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border);
+        }
+
+        .ht-btn.swap.active {
+            background: #FF9500;
+            color: white;
+            border-color: #FF9500;
+            box-shadow: 0 0 8px rgba(255, 149, 0, 0.4);
+        }
+
         /* メインエリア: 2パネル */
         .hybrid-main {
             display: flex;
@@ -1150,6 +1163,15 @@
             box-shadow: var(--shadow-focus);
             transform: scale(1.02);
             z-index: 10;
+        }
+
+        .hm-chip.swap-selected {
+            border-color: #FF9500;
+            background: #FFF5E5;
+            color: #FF9500;
+            box-shadow: 0 0 0 3px rgba(255,149,0,0.3);
+            transform: scale(1.05);
+            z-index: 11;
         }
 
         /* ドラッグ中のゴースト */
@@ -2031,6 +2053,7 @@
                         </div>
                         <div class="hybrid-topbar-right">
                             <span class="hybrid-topbar-status" id="hybridStatus"></span>
+                            <button class="ht-btn swap" id="swapModeBtn" onclick="toggleSwapMode()">🔄 入れ替え: OFF</button>
                             <button class="ht-btn confirm" id="confirmDayBtn" onclick="confirmCurrentDay()">✅
                                 この日を確定</button>
                             <button class="ht-btn submit" id="submitHybridBtn" onclick="submitHybrid()" disabled>🚀
@@ -3748,7 +3771,67 @@
             return partners;
         }
 
+        let isSwapMode = false;
+        let swapSourceChip = null;
+
+        function toggleSwapMode() {
+            isSwapMode = !isSwapMode;
+            const btn = document.getElementById('swapModeBtn');
+            if (isSwapMode) {
+                btn.classList.add('active');
+                btn.innerText = '🔄 入れ替え: ON';
+                showToast('入れ替えモードON: 2人をクリックして場所を入れ替えます', 'success');
+                deselectMember(); // 既存の選択を解除
+            } else {
+                btn.classList.remove('active');
+                btn.innerText = '🔄 入れ替え: OFF';
+                if (swapSourceChip) {
+                    swapSourceChip.classList.remove('swap-selected');
+                    swapSourceChip = null;
+                }
+            }
+        }
+
+        function handleSwapClick(chip) {
+            if (!swapSourceChip) {
+                swapSourceChip = chip;
+                chip.classList.add('swap-selected');
+            } else {
+                if (swapSourceChip === chip) {
+                    chip.classList.remove('swap-selected');
+                    swapSourceChip = null;
+                    return;
+                }
+                const parent1 = swapSourceChip.parentElement;
+                const parent2 = chip.parentElement;
+                const next1 = swapSourceChip.nextSibling;
+                const next2 = chip.nextSibling;
+
+                if (next2 === swapSourceChip) {
+                    parent2.insertBefore(swapSourceChip, chip);
+                } else {
+                    parent2.insertBefore(swapSourceChip, next2);
+                    parent1.insertBefore(chip, next1);
+                }
+
+                swapSourceChip.classList.remove('swap-selected');
+                swapSourceChip = null;
+
+                if (parent1.classList.contains('group-card-body')) sortGroupBody(parent1);
+                if (parent2 !== parent1 && parent2.classList.contains('group-card-body')) sortGroupBody(parent2);
+
+                updatePoolCounter();
+                updateGroupCounts();
+                saveHybridState();
+            }
+        }
+
         function handleChipClick(chip) {
+            if (isSwapMode) {
+                handleSwapClick(chip);
+                return;
+            }
+
             const isInPool = chip.parentElement.id === 'poolList';
             const isInGroup = chip.parentElement.classList.contains('group-card-body');
 
