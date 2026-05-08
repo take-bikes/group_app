@@ -3282,13 +3282,14 @@
 
             // 新規作成フォーム
             html += `<div class="event-create-row">
-                <input type="text" id="newEventName" placeholder="新しい企画名を入力（例: 春合宿2026）" onkeydown="if(event.key==='Enter'){event.preventDefault();createEvent();}">
-                <button type="button" class="reg-action-btn save" onclick="createEvent()" style="white-space:nowrap;">＋ 新規作成</button>
+                <input type="text" id="newEventName" placeholder="新しい企画名を入力（例: 春合宿2026）">
+                <button type="button" id="btnCreateEvent" class="reg-action-btn save" style="white-space:nowrap;">＋ 新規作成</button>
             </div>`;
 
             if (eventsList.length === 0) {
                 html += '<div class="event-empty"><div class="event-empty-icon">📅</div><p>企画がまだ登録されていません。<br>企画名を入力して「新規作成」で登録しましょう。</p></div>';
                 eventBody.innerHTML = html;
+                attachEventCreateListeners();
                 return;
             }
 
